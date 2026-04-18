@@ -1,30 +1,33 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+const categories = ["currency", "crypto", "gold", "silver", "metal", "other"];
 
 export default function AddTransactionForm({ assets, onAddTransaction }) {
-  const [assetType, setAssetType] = useState("cash");
-  const [assetName, setAssetName] = useState("Cash Savings");
+  const [assetCategory, setAssetCategory] = useState("currency");
+  const [assetName, setAssetName] = useState("");
   const [type, setType] = useState("deposit");
   const [amount, setAmount] = useState("");
-  const [unit, setUnit] = useState("THB");
+  const [unit, setUnit] = useState("");
   const [note, setNote] = useState("");
 
   const filteredAssets = useMemo(() => {
-    return assets.filter((asset) => asset.type === assetType);
-  }, [assets, assetType]);
+    return assets.filter((asset) => asset.category === assetCategory);
+  }, [assets, assetCategory]);
 
-  function handleAssetTypeChange(value) {
-    setAssetType(value);
-    const first = assets.find((asset) => asset.type === value);
-
-    if (first) {
-      setAssetName(first.name);
-      setUnit(first.unit);
+  useEffect(() => {
+    if (filteredAssets.length > 0) {
+      setAssetName(filteredAssets[0].name);
+      setUnit(filteredAssets[0].unit);
     } else {
       setAssetName("");
       setUnit("");
     }
+  }, [filteredAssets]);
+
+  function handleCategoryChange(value) {
+    setAssetCategory(value);
   }
 
   function handleAssetNameChange(value) {
@@ -41,7 +44,7 @@ export default function AddTransactionForm({ assets, onAddTransaction }) {
 
     onAddTransaction({
       id: crypto.randomUUID(),
-      assetType,
+      assetCategory,
       assetName,
       type,
       amount: parsed,
@@ -60,29 +63,36 @@ export default function AddTransactionForm({ assets, onAddTransaction }) {
 
       <div className="form-grid">
         <select
-          value={assetType}
-          onChange={(e) => handleAssetTypeChange(e.target.value)}
+          value={assetCategory}
+          onChange={(e) => handleCategoryChange(e.target.value)}
         >
-          <option value="cash">Cash</option>
-          <option value="gold">Gold</option>
-          <option value="crypto">Crypto</option>
+          {categories.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
         </select>
 
         <select
           value={assetName}
           onChange={(e) => handleAssetNameChange(e.target.value)}
         >
-          {filteredAssets.map((asset) => (
-            <option key={asset.id} value={asset.name}>
-              {asset.name}
-            </option>
-          ))}
+          {filteredAssets.length === 0 ? (
+            <option value="">No asset in this category</option>
+          ) : (
+            filteredAssets.map((asset) => (
+              <option key={asset.id} value={asset.name}>
+                {asset.name}
+              </option>
+            ))
+          )}
         </select>
 
         <select value={type} onChange={(e) => setType(e.target.value)}>
           <option value="deposit">Deposit</option>
           <option value="withdraw">Withdraw</option>
         </select>
+
         <input
           type="number"
           step="any"
@@ -106,7 +116,7 @@ export default function AddTransactionForm({ assets, onAddTransaction }) {
         />
       </div>
 
-      <button type="submit" className="primary-btn">
+      <button type="submit" className="primary-btn" disabled={!assetName}>
         Save Transaction
       </button>
     </form>
