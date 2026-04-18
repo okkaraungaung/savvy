@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { defaultState, loadState, saveState } from "@/lib/storage";
 import AssetCard from "./AssetCard";
@@ -33,7 +34,7 @@ export default function Dashboard() {
   function addTransaction(tx) {
     setState((prev) => {
       const updatedAssets = prev.assets.map((asset) => {
-        if (asset.name !== tx.assetName || asset.type !== tx.assetType)
+        if (asset.name !== tx.assetName || asset.category !== tx.assetCategory)
           return asset;
 
         const nextAmount =
@@ -48,7 +49,7 @@ export default function Dashboard() {
       });
 
       const updatedGoals = prev.goals.map((goal) => {
-        if (goal.assetType !== tx.assetType || goal.unit !== tx.unit)
+        if (goal.assetCategory !== tx.assetCategory || goal.unit !== tx.unit)
           return goal;
 
         const nextCurrent =
@@ -100,11 +101,15 @@ export default function Dashboard() {
       </section>
 
       <section>
-        <div className="section-head">
+        <div className="section-head section-head-row">
           <h2>Assets</h2>
+          <Link href="/assets" className="primary-btn link-btn">
+            Manage Assets
+          </Link>
         </div>
+
         <div className="asset-grid">
-          {state.assets.map((asset) => (
+          {state.assets.slice(0, 3).map((asset) => (
             <AssetCard key={asset.id} asset={asset} />
           ))}
         </div>

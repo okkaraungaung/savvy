@@ -266,3 +266,20 @@ select {
     font-size: 24px;
   }
 }
+
+.section-head-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.link-btn {
+  text-decoration: none;
+  display: inline-block;
+}
+
+.page-section {
+  margin-bottom: 24px;
+}

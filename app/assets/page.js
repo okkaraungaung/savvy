@@ -1,0 +1,67 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import AddAssetForm from "@/components/AddAssetForm";
+import AssetCard from "@/components/AssetCard";
+import { defaultState, loadState, saveState } from "@/lib/storage";
+
+export default function AssetsPage() {
+  const [state, setState] = useState(defaultState);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    const saved = loadState();
+    setState(saved);
+    setIsReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isReady) return;
+    saveState(state);
+  }, [state, isReady]);
+
+  function addAsset(newAsset) {
+    setState((prev) => ({
+      ...prev,
+      assets: [...prev.assets, newAsset],
+    }));
+  }
+
+  if (!isReady) {
+    return <div className="loading">Loading assets...</div>;
+  }
+
+  return (
+    <main className="page-wrap">
+      <div className="container">
+        <div className="header">
+          <div>
+            <h1>All Assets</h1>
+            <p>View all your assets and add new ones here.</p>
+          </div>
+
+          <Link href="/" className="primary-btn link-btn">
+            Back to Dashboard
+          </Link>
+        </div>
+
+        <div className="page-section">
+          <AddAssetForm onAddAsset={addAsset} />
+        </div>
+
+        <div className="page-section">
+          <div className="section-head">
+            <h2>Your Assets</h2>
+          </div>
+
+          <div className="asset-grid">
+            {state.assets.map((asset) => (
+              <AssetCard key={asset.id} asset={asset} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
