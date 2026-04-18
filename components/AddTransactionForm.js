@@ -3,10 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 
 const categories = ["currency", "crypto", "gold", "silver", "metal", "other"];
+const CUSTOM_OPTION = "__custom__";
 
 export default function AddTransactionForm({ assets, onAddTransaction }) {
   const [assetCategory, setAssetCategory] = useState("currency");
-  const [assetName, setAssetName] = useState("");
+  const [selectedAsset, setSelectedAsset] = useState("");
+  const [customAssetName, setCustomAssetName] = useState("");
   const [type, setType] = useState("deposit");
   const [amount, setAmount] = useState("");
   const [unit, setUnit] = useState("");
@@ -15,13 +17,16 @@ export default function AddTransactionForm({ assets, onAddTransaction }) {
   const filteredAssets = useMemo(() => {
     return assets.filter((asset) => asset.category === assetCategory);
   }, [assets, assetCategory]);
+  console.log(assets, assetCategory);
 
   useEffect(() => {
     if (filteredAssets.length > 0) {
-      setAssetName(filteredAssets[0].name);
+      setSelectedAsset(filteredAssets[0].name);
+      setCustomAssetName("");
       setUnit(filteredAssets[0].unit);
     } else {
-      setAssetName("");
+      setSelectedAsset(CUSTOM_OPTION);
+      setCustomAssetName("");
       setUnit("");
     }
   }, [filteredAssets]);
@@ -30,31 +35,62 @@ export default function AddTransactionForm({ assets, onAddTransaction }) {
     setAssetCategory(value);
   }
 
-  function handleAssetNameChange(value) {
-    setAssetName(value);
-    const selected = assets.find((asset) => asset.name === value);
-    if (selected) setUnit(selected.unit);
+  function handleAssetSelect(value) {
+    setSelectedAsset(value);
+
+    if (value === CUSTOM_OPTION) {
+      setCustomAssetName("");
+      setUnit("");
+      return;
+    }
+
+    const selected = filteredAssets.find((asset) => asset.name === value);
+    if (selected) {
+      setCustomAssetName("");
+      setUnit(selected.unit);
+    }
   }
 
   function handleSubmit(e) {
     e.preventDefault();
 
     const parsed = Number(amount);
-    if (!assetName || !unit || Number.isNaN(parsed) || parsed <= 0) return;
+    const finalAssetName =
+      selectedAsset === CUSTOM_OPTION ? customAssetName.trim() : selectedAsset;
+
+    if (
+      !finalAssetName ||
+      !unit.trim() ||
+      Number.isNaN(parsed) ||
+      parsed <= 0
+    ) {
+      return;
+    }
 
     onAddTransaction({
       id: crypto.randomUUID(),
       assetCategory,
-      assetName,
+      assetName: finalAssetName,
       type,
       amount: parsed,
-      unit,
-      note,
+      unit: unit.trim(),
+      note: note.trim(),
       date: new Date().toISOString(),
     });
 
     setAmount("");
     setNote("");
+    setType("deposit");
+
+    if (filteredAssets.length > 0) {
+      setSelectedAsset(filteredAssets[0].name);
+      setCustomAssetName("");
+      setUnit(filteredAssets[0].unit);
+    } else {
+      setSelectedAsset(CUSTOM_OPTION);
+      setCustomAssetName("");
+      setUnit("");
+    }
   }
 
   return (
@@ -74,19 +110,25 @@ export default function AddTransactionForm({ assets, onAddTransaction }) {
         </select>
 
         <select
-          value={assetName}
-          onChange={(e) => handleAssetNameChange(e.target.value)}
+          value={selectedAsset}
+          onChange={(e) => handleAssetSelect(e.target.value)}
         >
-          {filteredAssets.length === 0 ? (
-            <option value="">No asset in this category</option>
-          ) : (
-            filteredAssets.map((asset) => (
-              <option key={asset.id} value={asset.name}>
-                {asset.name}
-              </option>
-            ))
-          )}
+          {filteredAssets.map((asset) => (
+            <option key={asset.id} value={asset.name}>
+              {asset.name}
+            </option>
+          ))}
+          <option value={CUSTOM_OPTION}>Custom asset</option>
         </select>
+
+        {selectedAsset === CUSTOM_OPTION && (
+          <input
+            type="text"
+            placeholder="Enter asset name"
+            value={customAssetName}
+            onChange={(e) => setCustomAssetName(e.target.value)}
+          />
+        )}
 
         <select value={type} onChange={(e) => setType(e.target.value)}>
           <option value="deposit">Deposit</option>
@@ -103,7 +145,7 @@ export default function AddTransactionForm({ assets, onAddTransaction }) {
 
         <input
           type="text"
-          placeholder="Unit"
+          placeholder="Unit (USD, BTC, ETH, oz, gram)"
           value={unit}
           onChange={(e) => setUnit(e.target.value)}
         />
@@ -116,7 +158,7 @@ export default function AddTransactionForm({ assets, onAddTransaction }) {
         />
       </div>
 
-      <button type="submit" className="primary-btn" disabled={!assetName}>
+      <button type="submit" className="primary-btn">
         Save Transaction
       </button>
     </form>

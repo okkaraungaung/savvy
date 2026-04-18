@@ -4,10 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { defaultState, loadState, saveState } from "@/lib/storage";
 import AssetCard from "./AssetCard";
-import AddGoalForm from "./AddGoalForm";
-import AddTransactionForm from "./AddTransactionForm";
 import GoalCard from "./GoalCard";
-import TransactionList from "./TransactionList";
 
 export default function Dashboard() {
   const [state, setState] = useState(defaultState);
@@ -31,53 +28,9 @@ export default function Dashboard() {
     [state.transactions],
   );
 
-  function addTransaction(tx) {
-    setState((prev) => {
-      const updatedAssets = prev.assets.map((asset) => {
-        if (asset.name !== tx.assetName || asset.category !== tx.assetCategory)
-          return asset;
-
-        const nextAmount =
-          tx.type === "deposit"
-            ? asset.amount + tx.amount
-            : asset.amount - tx.amount;
-
-        return {
-          ...asset,
-          amount: nextAmount < 0 ? 0 : nextAmount,
-        };
-      });
-
-      const updatedGoals = prev.goals.map((goal) => {
-        if (goal.assetCategory !== tx.assetCategory || goal.unit !== tx.unit)
-          return goal;
-
-        const nextCurrent =
-          tx.type === "deposit"
-            ? goal.current + tx.amount
-            : goal.current - tx.amount;
-
-        return {
-          ...goal,
-          current: nextCurrent < 0 ? 0 : nextCurrent,
-        };
-      });
-
-      return {
-        ...prev,
-        assets: updatedAssets,
-        goals: updatedGoals,
-        transactions: [...prev.transactions, tx],
-      };
-    });
-  }
-
-  function addGoal(goal) {
-    setState((prev) => ({
-      ...prev,
-      goals: [...prev.goals, goal],
-    }));
-  }
+  const previewAssets = state.assets.slice(0, 3);
+  const previewGoals = state.goals.slice(0, 3);
+  const previewTransactions = state.transactions.slice(-5).reverse();
 
   if (!isReady) {
     return <div className="loading">Loading dashboard...</div>;
@@ -90,10 +43,12 @@ export default function Dashboard() {
           <p>Tracked Assets</p>
           <h2>{totalAssets}</h2>
         </div>
+
         <div className="summary-card">
           <p>Savings Goals</p>
           <h2>{totalGoals}</h2>
         </div>
+
         <div className="summary-card">
           <p>Transactions</p>
           <h2>{totalTransactions}</h2>
@@ -102,40 +57,77 @@ export default function Dashboard() {
 
       <section>
         <div className="section-head section-head-row">
-          <h2>Assets</h2>
+          <h2>Assets Overview</h2>
           <Link href="/assets" className="primary-btn link-btn">
             Manage Assets
           </Link>
         </div>
 
         <div className="asset-grid">
-          {state.assets.slice(0, 3).map((asset) => (
-            <AssetCard key={asset.id} asset={asset} />
-          ))}
+          {previewAssets.length === 0 ? (
+            <div className="card">
+              <p className="muted">No assets yet.</p>
+            </div>
+          ) : (
+            previewAssets.map((asset) => (
+              <AssetCard key={asset.id} asset={asset} />
+            ))
+          )}
         </div>
-      </section>
-
-      <section className="two-col-grid">
-        <AddTransactionForm
-          assets={state.assets}
-          onAddTransaction={addTransaction}
-        />
-        <AddGoalForm onAddGoal={addGoal} />
       </section>
 
       <section>
-        <div className="section-head">
-          <h2>Goals</h2>
+        <div className="section-head section-head-row">
+          <h2>Goals Overview</h2>
+          <Link href="/goals" className="primary-btn link-btn">
+            View Goals
+          </Link>
         </div>
+
         <div className="goal-grid">
-          {state.goals.map((goal) => (
-            <GoalCard key={goal.id} goal={goal} />
-          ))}
+          {previewGoals.length === 0 ? (
+            <div className="card">
+              <p className="muted">No goals yet.</p>
+            </div>
+          ) : (
+            previewGoals.map((goal) => <GoalCard key={goal.id} goal={goal} />)
+          )}
         </div>
       </section>
 
       <section>
-        <TransactionList transactions={state.transactions} />
+        <div className="section-head section-head-row">
+          <h2>Recent Transactions</h2>
+          <Link href="/transactions" className="primary-btn link-btn">
+            View Transactions
+          </Link>
+        </div>
+
+        <div className="card">
+          {previewTransactions.length === 0 ? (
+            <p className="muted">No transactions yet.</p>
+          ) : (
+            <div className="transaction-list">
+              {previewTransactions.map((tx) => (
+                <div key={tx.id} className="transaction-item">
+                  <div>
+                    <p className="transaction-amount">
+                      {tx.type === "deposit" ? "+" : "-"} {tx.amount} {tx.unit}
+                    </p>
+                    <p className="muted">
+                      {tx.assetName} • {tx.assetCategory}
+                    </p>
+                    {tx.note ? <p className="muted">{tx.note}</p> : null}
+                  </div>
+
+                  <div className="muted">
+                    {new Date(tx.date).toLocaleString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </section>
     </div>
   );
