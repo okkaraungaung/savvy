@@ -27,10 +27,12 @@ export default function TransactionsPage() {
         if (asset.name !== tx.assetName || asset.category !== tx.assetCategory)
           return asset;
 
-        const nextAmount =
+        const rawAmount =
           tx.type === "deposit"
             ? asset.amount + tx.amount
             : asset.amount - tx.amount;
+
+        const nextAmount = Number(rawAmount.toFixed(8));
 
         return {
           ...asset,
@@ -58,10 +60,6 @@ export default function TransactionsPage() {
             <h1>Transactions</h1>
             <p>Add and view your transactions</p>
           </div>
-
-          <Link href="/" className="primary-btn link-btn">
-            Dashboard
-          </Link>
         </div>
 
         <div className="page-section">

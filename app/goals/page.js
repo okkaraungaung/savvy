@@ -40,10 +40,6 @@ export default function GoalsPage() {
             <h1>Goals</h1>
             <p>Create and track your savings goals</p>
           </div>
-
-          <Link href="/" className="primary-btn link-btn">
-            Dashboard
-          </Link>
         </div>
 
         <div className="page-section">

@@ -40,10 +40,6 @@ export default function AssetsPage() {
             <h1>All Assets</h1>
             <p>View all your assets and add new ones here.</p>
           </div>
-
-          <Link href="/" className="primary-btn link-btn">
-            Back to Dashboard
-          </Link>
         </div>
 
         <div className="page-section">
