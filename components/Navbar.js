@@ -15,18 +15,28 @@ export default function Navbar() {
       <div className="nav-container">
 
         {/* LEFT - LOGO */}
-        <Link href="/" className="logo">
-          <img src="/logotran.png" alt="Savvy Logo" />
-          <span className="logo-text">Savvy</span>
-        </Link>
+        <div className="nav-left">
+          <Link href="/" className="logo">
+            <img src="/logotran.png" alt="Savvy Logo" />
+            <span className="logo-text">Savvy</span>
+          </Link>
+        </div>
 
-        {/* RIGHT - LINKS */}
-        <div className="nav-links">
+        {/* CENTER - LINKS */}
+        <div className="nav-center">
           <Link href="/" className={isActive("/")}>Dashboard</Link>
           <Link href="/assets" className={isActive("/assets")}>Assets</Link>
           <Link href="/goals" className={isActive("/goals")}>Goals</Link>
           <Link href="/transactions" className={isActive("/transactions")}>Transactions</Link>
         </div>
+
+        {/* RIGHT - LOGIN */}
+        <div className="nav-right">
+          <Link href="/login" className="login-btn-nav">
+            Login
+          </Link>
+        </div>
+
       </div>
     </nav>
   );
