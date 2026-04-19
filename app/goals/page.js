@@ -43,7 +43,7 @@ export default function GoalsPage() {
         </div>
 
         <div className="page-section">
-          <AddGoalForm onAddGoal={addGoal} />
+          <AddGoalForm assets={state.assets} onAddGoal={addGoal} />
         </div>
 
         <div className="page-section">

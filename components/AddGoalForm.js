@@ -1,14 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-export default function AddGoalForm({ onAddGoal }) {
+export default function AddGoalForm({ assets = [], onAddGoal }) {
   const [title, setTitle] = useState("");
   const [target, setTarget] = useState("");
   const [current, setCurrent] = useState("");
-  const [unit, setUnit] = useState("THB");
-  const [assetType, setAssetType] = useState("cash");
+  const [unit, setUnit] = useState("");
   const [deadline, setDeadline] = useState("");
+
+  const uniqueUnits = useMemo(() => {
+    return [...new Set(assets.map((asset) => asset.unit).filter(Boolean))];
+  }, [assets]);
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -16,22 +19,29 @@ export default function AddGoalForm({ onAddGoal }) {
     const parsedTarget = Number(target);
     const parsedCurrent = Number(current);
 
-    if (!title || !unit || Number.isNaN(parsedTarget) || parsedTarget <= 0)
+    if (
+      !title.trim() ||
+      !unit.trim() ||
+      Number.isNaN(parsedTarget) ||
+      parsedTarget <= 0
+    ) {
       return;
+    }
 
     onAddGoal({
       id: crypto.randomUUID(),
-      title,
+      title: title.trim(),
       target: parsedTarget,
-      current: Number.isNaN(parsedCurrent) ? 0 : parsedCurrent,
-      unit,
-      assetType,
+      current:
+        Number.isNaN(parsedCurrent) || parsedCurrent < 0 ? 0 : parsedCurrent,
+      unit: unit.trim(),
       deadline,
     });
 
     setTitle("");
     setTarget("");
     setCurrent("");
+    setUnit("");
     setDeadline("");
   }
 
@@ -46,15 +56,6 @@ export default function AddGoalForm({ onAddGoal }) {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
-
-        <select
-          value={assetType}
-          onChange={(e) => setAssetType(e.target.value)}
-        >
-          <option value="cash">Cash</option>
-          <option value="gold">Gold</option>
-          <option value="crypto">Crypto</option>
-        </select>
 
         <input
           type="number"
@@ -71,12 +72,15 @@ export default function AddGoalForm({ onAddGoal }) {
           value={current}
           onChange={(e) => setCurrent(e.target.value)}
         />
-        <input
-          type="text"
-          placeholder="Unit (THB, BTC, baht-weight)"
-          value={unit}
-          onChange={(e) => setUnit(e.target.value)}
-        />
+
+        <select value={unit} onChange={(e) => setUnit(e.target.value)}>
+          <option value="">Select unit</option>
+          {[...new Set(assets.map((asset) => asset.unit))].map((u) => (
+            <option key={u} value={u}>
+              {u}
+            </option>
+          ))}
+        </select>
 
         <input
           type="date"
