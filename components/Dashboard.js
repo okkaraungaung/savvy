@@ -58,8 +58,9 @@ export default function Dashboard() {
       <section>
         <div className="section-head section-head-row">
           <h2>Assets Overview</h2>
-          <Link href="/assets" className="primary-btn link-btn">
-            Manage Assets
+          <Link href="/assets" className="arrow-btn">
+            <span>Manage Assets</span>
+            <span className="arrow-circle">→</span>
           </Link>
         </div>
 
@@ -79,8 +80,9 @@ export default function Dashboard() {
       <section>
         <div className="section-head section-head-row">
           <h2>Goals Overview</h2>
-          <Link href="/goals" className="primary-btn link-btn">
-            View Goals
+          <Link href="/goals" className="arrow-btn">
+            <span>View Goals</span>
+            <span className="arrow-circle">→</span>
           </Link>
         </div>
 
@@ -98,8 +100,9 @@ export default function Dashboard() {
       <section>
         <div className="section-head section-head-row">
           <h2>Recent Transactions</h2>
-          <Link href="/transactions" className="primary-btn link-btn">
-            View Transactions
+          <Link href="/transactions" className="arrow-btn">
+            <span>View Transactions</span>
+            <span className="arrow-circle">→</span>
           </Link>
         </div>
 

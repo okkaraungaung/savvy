@@ -13,21 +13,19 @@ export default function Navbar() {
   return (
     <nav className="navbar">
       <div className="nav-container">
-        <h2 className="logo">Savvy</h2>
 
+        {/* LEFT - LOGO */}
+        <Link href="/" className="logo">
+          <img src="/logotran.png" alt="Savvy Logo" />
+          <span className="logo-text">Savvy</span>
+        </Link>
+
+        {/* RIGHT - LINKS */}
         <div className="nav-links">
-          <Link href="/" className={isActive("/")}>
-            Dashboard
-          </Link>
-          <Link href="/assets" className={isActive("/assets")}>
-            Assets
-          </Link>
-          <Link href="/goals" className={isActive("/goals")}>
-            Goals
-          </Link>
-          <Link href="/transactions" className={isActive("/transactions")}>
-            Transactions
-          </Link>
+          <Link href="/" className={isActive("/")}>Dashboard</Link>
+          <Link href="/assets" className={isActive("/assets")}>Assets</Link>
+          <Link href="/goals" className={isActive("/goals")}>Goals</Link>
+          <Link href="/transactions" className={isActive("/transactions")}>Transactions</Link>
         </div>
       </div>
     </nav>

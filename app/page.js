@@ -39,6 +39,7 @@ export default function HomePage() {
         <Header />
         <Dashboard />
       </div>
+      {/* <Footer /> */}
     </main>
   );
 }
