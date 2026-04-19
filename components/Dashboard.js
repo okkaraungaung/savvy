@@ -32,7 +32,10 @@ export default function Dashboard() {
     saveState(state);
   }, [state, isReady]);
 
-  const totalAssets = useMemo(() => state.assets.length, [state.assets]);
+  const totalAssets = useMemo(
+    () => state.assets.filter((a) => a.amount > 0).length,
+    [state.assets],
+  );
   const totalGoals = useMemo(() => state.goals.length, [state.goals]);
   const totalTransactions = useMemo(
     () => state.transactions.length,

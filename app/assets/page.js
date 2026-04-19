@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import AddAssetForm from "@/components/AddAssetForm";
 import AssetCard from "@/components/AssetCard";
@@ -28,6 +27,8 @@ export default function AssetsPage() {
     }));
   }
 
+  const activeAssets = state.assets.filter((a) => a.amount > 0);
+
   if (!isReady) {
     return <div className="loading">Loading assets...</div>;
   }
@@ -51,11 +52,17 @@ export default function AssetsPage() {
             <h2>Your Assets</h2>
           </div>
 
-          <div className="asset-grid">
-            {state.assets.map((asset) => (
-              <AssetCard key={asset.id} asset={asset} />
-            ))}
-          </div>
+          {activeAssets.length === 0 ? (
+            <div className="card">
+              <p className="muted">No assets yet.</p>
+            </div>
+          ) : (
+            <div className="asset-grid">
+              {activeAssets.map((asset) => (
+                <AssetCard key={asset.id} asset={asset} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </main>
