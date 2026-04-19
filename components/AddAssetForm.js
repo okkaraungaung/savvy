@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const categories = ["currency", "crypto", "gold", "silver", "metal", "other"];
+const categories = ["currency", "crypto", "metal", "other"];
 
 export default function AddAssetForm({ onAddAsset }) {
   const [category, setCategory] = useState("currency");
@@ -65,7 +65,7 @@ export default function AddAssetForm({ onAddAsset }) {
 
         <input
           type="text"
-          placeholder="Unit (USD, BTC, ETH, oz, gram)"
+          placeholder="Unit"
           value={unit}
           onChange={(e) => setUnit(e.target.value)}
         />
