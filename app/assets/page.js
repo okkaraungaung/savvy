@@ -3,33 +3,55 @@
 import { useEffect, useState } from "react";
 import AddAssetForm from "@/components/AddAssetForm";
 import AssetCard from "@/components/AssetCard";
-import { defaultState, loadState, saveState } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 
 export default function AssetsPage() {
-  const [state, setState] = useState(defaultState);
-  const [isReady, setIsReady] = useState(false);
+  const [assets, setAssets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    const saved = loadState();
-    setState(saved);
-    setIsReady(true);
-  }, []);
+  async function fetchAssets() {
+    setLoading(true);
+    setError("");
 
-  useEffect(() => {
-    if (!isReady) return;
-    saveState(state);
-  }, [state, isReady]);
+    const { data, error } = await supabase
+      .from("assets")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-  function addAsset(newAsset) {
-    setState((prev) => ({
-      ...prev,
-      assets: [...prev.assets, newAsset],
-    }));
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    setAssets(data || []);
+    setLoading(false);
   }
 
-  const activeAssets = state.assets.filter((a) => a.amount > 0);
+  useEffect(() => {
+    fetchAssets();
+  }, []);
 
-  if (!isReady) {
+  async function addAsset(newAsset) {
+    setError("");
+
+    const { data, error } = await supabase
+      .from("assets")
+      .insert([newAsset])
+      .select();
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setAssets((prev) => [...(data || []), ...prev]);
+  }
+
+  const activeAssets = assets.filter((a) => Number(a.amount) > 0);
+
+  if (loading) {
     return <div className="loading">Loading assets...</div>;
   }
 
@@ -42,6 +64,12 @@ export default function AssetsPage() {
             <p>View all your assets and add new ones here.</p>
           </div>
         </div>
+
+        {error ? (
+          <div className="card">
+            <p className="muted">Error: {error}</p>
+          </div>
+        ) : null}
 
         <div className="page-section">
           <AddAssetForm onAddAsset={addAsset} />

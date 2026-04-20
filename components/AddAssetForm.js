@@ -20,7 +20,6 @@ export default function AddAssetForm({ onAddAsset }) {
       return;
 
     onAddAsset({
-      id: crypto.randomUUID(),
       category,
       name,
       amount: parsedAmount,
