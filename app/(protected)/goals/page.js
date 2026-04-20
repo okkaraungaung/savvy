@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import AddGoalForm from "@/components/AddGoalForm";
 import GoalCard from "@/components/GoalCard";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 
 export default function GoalsPage() {
   const [goals, setGoals] = useState([]);
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const supabase = createClient();
 
   async function fetchGoalsAndAssets() {
     setLoading(true);

@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import AddAssetForm from "@/components/AddAssetForm";
 import AssetCard from "@/components/AssetCard";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 
 export default function AssetsPage() {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const supabase = createClient();
 
   async function fetchAssets() {
     setLoading(true);

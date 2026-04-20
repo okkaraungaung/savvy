@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import AddTransactionForm from "@/components/AddTransactionForm";
 import TransactionList from "@/components/TransactionList";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 
 export default function TransactionsPage() {
   const [assets, setAssets] = useState([]);
@@ -11,6 +11,7 @@ export default function TransactionsPage() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const supabase = createClient();
 
   async function fetchData() {
     setLoading(true);
