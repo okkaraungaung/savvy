@@ -1,125 +1,185 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import AddTransactionForm from "@/components/AddTransactionForm";
 import TransactionList from "@/components/TransactionList";
-import { defaultState, loadState, saveState } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 
 export default function TransactionsPage() {
-  const [state, setState] = useState(defaultState);
-  const [isReady, setIsReady] = useState(false);
+  const [assets, setAssets] = useState([]);
+  const [goals, setGoals] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    const saved = loadState();
-    setState(saved);
-    setIsReady(true);
-  }, []);
+  async function fetchData() {
+    setLoading(true);
+    setError("");
 
-  useEffect(() => {
-    if (!isReady) return;
-    saveState(state);
-  }, [state, isReady]);
+    const [
+      { data: assetsData, error: assetsError },
+      { data: goalsData, error: goalsError },
+      { data: transactionsData, error: transactionsError },
+    ] = await Promise.all([
+      supabase
+        .from("assets")
+        .select("*")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("goals")
+        .select("*")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("transactions")
+        .select("*")
+        .order("created_at", { ascending: false }),
+    ]);
 
-  function addTransaction(tx) {
-    setState((prev) => {
-      const existingAsset = prev.assets.find(
-        (asset) =>
-          asset.category === tx.assetCategory &&
-          asset.name.toLowerCase() === tx.assetName.toLowerCase(),
-      );
+    if (assetsError) {
+      setError(assetsError.message);
+      setLoading(false);
+      return;
+    }
 
-      if (
-        existingAsset &&
-        tx.type === "withdraw" &&
-        existingAsset.amount < tx.amount
-      ) {
-        alert("Not enough asset balance!");
-        return prev;
-      }
+    if (goalsError) {
+      setError(goalsError.message);
+      setLoading(false);
+      return;
+    }
 
-      if (!existingAsset && tx.type === "withdraw") {
-        alert("Cannot withdraw from non-existing asset!");
-        return prev;
-      }
+    if (transactionsError) {
+      setError(transactionsError.message);
+      setLoading(false);
+      return;
+    }
 
-      const selectedGoal = tx.goalId
-        ? prev.goals.find((goal) => goal.id === tx.goalId)
-        : null;
-
-      if (
-        selectedGoal &&
-        tx.type === "withdraw" &&
-        selectedGoal.current < tx.amount
-      ) {
-        alert("Not enough goal balance!");
-        return prev;
-      }
-
-      let updatedAssets;
-
-      if (existingAsset) {
-        updatedAssets = prev.assets.map((asset) => {
-          if (
-            asset.category !== tx.assetCategory ||
-            asset.name.toLowerCase() !== tx.assetName.toLowerCase()
-          ) {
-            return asset;
-          }
-
-          const rawAmount =
-            tx.type === "deposit"
-              ? asset.amount + tx.amount
-              : asset.amount - tx.amount;
-
-          const nextAmount = Number(rawAmount.toFixed(8));
-
-          return {
-            ...asset,
-            amount: nextAmount < 0 ? 0 : nextAmount,
-          };
-        });
-      } else {
-        updatedAssets = [
-          ...prev.assets,
-          {
-            id: crypto.randomUUID(),
-            category: tx.assetCategory,
-            name: tx.assetName,
-            amount: Number(tx.amount.toFixed(8)),
-            unit: tx.unit,
-            note: tx.note || "",
-          },
-        ];
-      }
-
-      const updatedGoals = prev.goals.map((goal) => {
-        if (goal.id !== tx.goalId) return goal;
-
-        const rawCurrent =
-          tx.type === "deposit"
-            ? goal.current + tx.amount
-            : goal.current - tx.amount;
-
-        const nextCurrent = Number(rawCurrent.toFixed(8));
-
-        return {
-          ...goal,
-          current: nextCurrent < 0 ? 0 : nextCurrent,
-        };
-      });
-
-      return {
-        ...prev,
-        assets: updatedAssets,
-        goals: updatedGoals,
-        transactions: [...prev.transactions, tx],
-      };
-    });
+    setAssets(assetsData || []);
+    setGoals(goalsData || []);
+    setTransactions(transactionsData || []);
+    setLoading(false);
   }
 
-  if (!isReady) {
-    return <div className="loading">Loading...</div>;
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  async function addTransaction(tx) {
+    setError("");
+
+    const existingAsset = assets.find(
+      (asset) =>
+        asset.category === tx.assetCategory &&
+        asset.name.toLowerCase() === tx.assetName.toLowerCase(),
+    );
+
+    if (!existingAsset) {
+      setError("Asset not found.");
+      return;
+    }
+
+    if (tx.type === "withdraw" && Number(existingAsset.amount) < tx.amount) {
+      setError("Not enough asset balance.");
+      return;
+    }
+
+    const selectedGoal = tx.goalId
+      ? goals.find((goal) => goal.id === tx.goalId)
+      : null;
+
+    if (
+      selectedGoal &&
+      tx.type === "withdraw" &&
+      Number(selectedGoal.current) < tx.amount
+    ) {
+      setError("Not enough goal balance.");
+      return;
+    }
+
+    const rawAssetAmount =
+      tx.type === "deposit"
+        ? Number(existingAsset.amount) + tx.amount
+        : Number(existingAsset.amount) - tx.amount;
+
+    const nextAssetAmount = Number(rawAssetAmount.toFixed(8));
+
+    const { error: assetUpdateError } = await supabase
+      .from("assets")
+      .update({ amount: nextAssetAmount })
+      .eq("id", existingAsset.id);
+
+    if (assetUpdateError) {
+      setError(assetUpdateError.message);
+      return;
+    }
+
+    if (selectedGoal) {
+      const rawGoalCurrent =
+        tx.type === "deposit"
+          ? Number(selectedGoal.current) + tx.amount
+          : Number(selectedGoal.current) - tx.amount;
+
+      const nextGoalCurrent = Number(rawGoalCurrent.toFixed(8));
+
+      const { error: goalUpdateError } = await supabase
+        .from("goals")
+        .update({ current: nextGoalCurrent })
+        .eq("id", selectedGoal.id);
+
+      if (goalUpdateError) {
+        setError(goalUpdateError.message);
+        return;
+      }
+    }
+
+    const { data, error: insertError } = await supabase
+      .from("transactions")
+      .insert([
+        {
+          asset_id: existingAsset.id,
+          asset_name: tx.assetName,
+          asset_category: tx.assetCategory,
+          type: tx.type,
+          amount: tx.amount,
+          unit: tx.unit,
+          note: tx.note,
+          goal_id: tx.goalId || null,
+        },
+      ])
+      .select();
+
+    if (insertError) {
+      setError(insertError.message);
+      return;
+    }
+
+    setAssets((prev) =>
+      prev.map((asset) =>
+        asset.id === existingAsset.id
+          ? { ...asset, amount: nextAssetAmount }
+          : asset,
+      ),
+    );
+
+    if (selectedGoal) {
+      const nextGoalCurrent =
+        tx.type === "deposit"
+          ? Number((Number(selectedGoal.current) + tx.amount).toFixed(8))
+          : Number((Number(selectedGoal.current) - tx.amount).toFixed(8));
+
+      setGoals((prev) =>
+        prev.map((goal) =>
+          goal.id === selectedGoal.id
+            ? { ...goal, current: nextGoalCurrent }
+            : goal,
+        ),
+      );
+    }
+
+    setTransactions((prev) => [...(data || []), ...prev]);
+  }
+
+  if (loading) {
+    return <div className="loading">Loading transactions...</div>;
   }
 
   return (
@@ -128,20 +188,26 @@ export default function TransactionsPage() {
         <div className="header">
           <div>
             <h1>Transactions</h1>
-            <p>Add and view your transactions</p>
+            <p>Add and view your transactions here.</p>
           </div>
         </div>
 
+        {error ? (
+          <div className="card">
+            <p className="muted">Error: {error}</p>
+          </div>
+        ) : null}
+
         <div className="page-section">
           <AddTransactionForm
-            assets={state.assets}
-            goals={state.goals}
+            assets={assets}
+            goals={goals}
             onAddTransaction={addTransaction}
           />
         </div>
 
         <div className="page-section">
-          <TransactionList transactions={state.transactions} />
+          <TransactionList transactions={transactions} />
         </div>
       </div>
     </main>

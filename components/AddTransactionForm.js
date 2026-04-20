@@ -68,7 +68,6 @@ export default function AddTransactionForm({
     }
 
     onAddTransaction({
-      id: crypto.randomUUID(),
       assetCategory,
       assetName: selectedAsset,
       type,
