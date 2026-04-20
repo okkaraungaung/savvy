@@ -1,35 +1,73 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import AddGoalForm from "@/components/AddGoalForm";
 import GoalCard from "@/components/GoalCard";
-import { defaultState, loadState, saveState } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 
 export default function GoalsPage() {
-  const [state, setState] = useState(defaultState);
-  const [isReady, setIsReady] = useState(false);
+  const [goals, setGoals] = useState([]);
+  const [assets, setAssets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    const saved = loadState();
-    setState(saved);
-    setIsReady(true);
-  }, []);
+  async function fetchGoalsAndAssets() {
+    setLoading(true);
+    setError("");
 
-  useEffect(() => {
-    if (!isReady) return;
-    saveState(state);
-  }, [state, isReady]);
+    const [
+      { data: goalsData, error: goalsError },
+      { data: assetsData, error: assetsError },
+    ] = await Promise.all([
+      supabase
+        .from("goals")
+        .select("*")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("assets")
+        .select("*")
+        .order("created_at", { ascending: false }),
+    ]);
 
-  function addGoal(goal) {
-    setState((prev) => ({
-      ...prev,
-      goals: [...prev.goals, goal],
-    }));
+    if (goalsError) {
+      setError(goalsError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (assetsError) {
+      setError(assetsError.message);
+      setLoading(false);
+      return;
+    }
+
+    setGoals(goalsData || []);
+    setAssets(assetsData || []);
+    setLoading(false);
   }
 
-  if (!isReady) {
-    return <div className="loading">Loading...</div>;
+  useEffect(() => {
+    fetchGoalsAndAssets();
+  }, []);
+
+  async function addGoal(newGoal) {
+    setError("");
+
+    const { data, error } = await supabase
+      .from("goals")
+      .insert([newGoal])
+      .select();
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setGoals((prev) => [...(data || []), ...prev]);
+  }
+
+  if (loading) {
+    return <div className="loading">Loading goals...</div>;
   }
 
   return (
@@ -38,20 +76,36 @@ export default function GoalsPage() {
         <div className="header">
           <div>
             <h1>Goals</h1>
-            <p>Create and track your savings goals</p>
+            <p>Create and track your savings goals.</p>
           </div>
         </div>
 
+        {error ? (
+          <div className="card">
+            <p className="muted">Error: {error}</p>
+          </div>
+        ) : null}
+
         <div className="page-section">
-          <AddGoalForm assets={state.assets} onAddGoal={addGoal} />
+          <AddGoalForm assets={assets} onAddGoal={addGoal} />
         </div>
 
         <div className="page-section">
-          <div className="goal-grid">
-            {state.goals.map((goal) => (
-              <GoalCard key={goal.id} goal={goal} />
-            ))}
+          <div className="section-head">
+            <h2>Your Goals</h2>
           </div>
+
+          {goals.length === 0 ? (
+            <div className="card">
+              <p className="muted">No goals yet.</p>
+            </div>
+          ) : (
+            <div className="goal-grid">
+              {goals.map((goal) => (
+                <GoalCard key={goal.id} goal={goal} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </main>

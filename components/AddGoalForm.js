@@ -29,7 +29,6 @@ export default function AddGoalForm({ assets = [], onAddGoal }) {
     }
 
     onAddGoal({
-      id: crypto.randomUUID(),
       title: title.trim(),
       target: parsedTarget,
       current:
