@@ -9,6 +9,17 @@ import GoalCard from "./GoalCard";
 export default function Dashboard() {
   const [state, setState] = useState(defaultState);
   const [isReady, setIsReady] = useState(false);
+  const [filter, setFilter] = useState("all"); // all | deposit | withdraw
+
+  function formatDate(date) {
+    return new Date(date).toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
 
   useEffect(() => {
     const saved = loadState();
@@ -25,12 +36,16 @@ export default function Dashboard() {
   const totalGoals = useMemo(() => state.goals.length, [state.goals]);
   const totalTransactions = useMemo(
     () => state.transactions.length,
-    [state.transactions],
+    [state.transactions]
   );
 
   const previewAssets = state.assets.slice(0, 3);
   const previewGoals = state.goals.slice(0, 3);
-  const previewTransactions = state.transactions.slice(-5).reverse();
+
+  const filteredTransactions =
+    filter === "all"
+      ? state.transactions
+      : state.transactions.filter((tx) => tx.type === filter);
 
   if (!isReady) {
     return <div className="loading">Loading dashboard...</div>;
@@ -106,29 +121,92 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        <div className="card">
-          {previewTransactions.length === 0 ? (
-            <p className="muted">No transactions yet.</p>
-          ) : (
-            <div className="transaction-list">
-              {previewTransactions.map((tx) => (
-                <div key={tx.id} className="transaction-item">
-                  <div>
-                    <p className="transaction-amount">
-                      {tx.type === "deposit" ? "+" : "-"} {tx.amount} {tx.unit}
-                    </p>
-                    <p className="muted">
-                      {tx.assetName} • {tx.assetCategory}
-                    </p>
-                    {tx.note ? <p className="muted">{tx.note}</p> : null}
-                  </div>
+        {/* FILTER BUTTONS */}
+        <div className="transaction-filter">
+          <button
+            className={filter === "all" ? "active" : ""}
+            onClick={() => setFilter("all")}
+          >
+            All
+          </button>
 
-                  <div className="muted">
-                    {new Date(tx.date).toLocaleString()}
-                  </div>
-                </div>
-              ))}
+          <button
+            className={filter === "deposit" ? "active deposit-btn" : "deposit-btn"}
+            onClick={() => setFilter("deposit")}
+          >
+            Deposit
+          </button>
+
+          <button
+            className={
+              filter === "withdraw" ? "active withdraw-btn" : "withdraw-btn"
+            }
+            onClick={() => setFilter("withdraw")}
+          >
+            Withdraw
+          </button>
+        </div>
+
+        {/* LIST */}
+        <div className="transaction-list modern-transaction-list">
+          {filteredTransactions.length === 0 ? (
+            <div className="transaction-empty">
+              <div className="transaction-empty-icon">💸</div>
+              <h3>No transactions</h3>
+              <p className="muted">No data for this filter.</p>
             </div>
+          ) : (
+            filteredTransactions
+              .slice()
+              .reverse()
+              .map((tx) => {
+                const isDeposit = tx.type === "deposit";
+
+                return (
+                  <div
+                    key={tx.id}
+                    className="transaction-item modern-transaction-item"
+                  >
+                    <div
+                      className={`transaction-icon ${
+                        isDeposit ? "deposit" : "withdraw"
+                      }`}
+                    >
+                      {isDeposit ? "↗" : "↘"}
+                    </div>
+
+                    <div className="transaction-main">
+                      <div className="transaction-top-row">
+                        <p
+                          className={`transaction-amount ${
+                            isDeposit ? "deposit-text" : "withdraw-text"
+                          }`}
+                        >
+                          {isDeposit ? "+" : "-"} {tx.amount} {tx.unit}
+                        </p>
+
+                        <span
+                          className={`transaction-badge ${
+                            isDeposit ? "deposit-badge" : "withdraw-badge"
+                          }`}
+                        >
+                          {tx.type}
+                        </span>
+                      </div>
+
+                      <p className="transaction-asset">
+                        {tx.assetName} <span>•</span> {tx.assetType}
+                      </p>
+
+                      {tx.note ? (
+                        <p className="transaction-note">{tx.note}</p>
+                      ) : null}
+                    </div>
+
+                    <div className="transaction-date">{formatDate(tx.date)}</div>
+                  </div>
+                );
+              })
           )}
         </div>
       </section>
