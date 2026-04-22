@@ -16,6 +16,8 @@ export default function AddTransactionForm({
   const [amount, setAmount] = useState("");
   const [unit, setUnit] = useState("");
   const [note, setNote] = useState("");
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState(""); // success | error
 
   const filteredAssets = useMemo(() => {
     return assets.filter((asset) => asset.category === assetCategory);
@@ -43,6 +45,17 @@ export default function AddTransactionForm({
     setSelectedGoalId("");
   }, [filteredAssets]);
 
+  useEffect(() => {
+    if (!message) return;
+
+    const timer = setTimeout(() => {
+      setMessage("");
+      setMessageType("");
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [message]);
+
   function handleCategoryChange(value) {
     setAssetCategory(value);
   }
@@ -58,30 +71,52 @@ export default function AddTransactionForm({
     }
   }
 
+  function showMessage(type, text) {
+    setMessageType(type);
+    setMessage(text);
+  }
+
   function handleSubmit(e) {
     e.preventDefault();
 
     const parsed = Number(amount);
 
-    if (!selectedAsset || !unit.trim() || Number.isNaN(parsed) || parsed <= 0) {
+    if (!selectedAsset) {
+      showMessage("error", "Please select an asset.");
       return;
     }
 
-    onAddTransaction({
-      assetCategory,
-      assetName: selectedAsset,
-      type,
-      amount: parsed,
-      unit: unit.trim(),
-      note: note.trim(),
-      goalId: selectedGoalId || null,
-      date: new Date().toISOString(),
-    });
+    if (!unit.trim()) {
+      showMessage("error", "Unit is missing for this asset.");
+      return;
+    }
 
-    setAmount("");
-    setNote("");
-    setType("deposit");
-    setSelectedGoalId("");
+    if (Number.isNaN(parsed) || parsed <= 0) {
+      showMessage("error", "Please enter a valid amount greater than 0.");
+      return;
+    }
+
+    try {
+      onAddTransaction({
+        assetCategory,
+        assetName: selectedAsset,
+        type,
+        amount: parsed,
+        unit: unit.trim(),
+        note: note.trim(),
+        goalId: selectedGoalId || null,
+        date: new Date().toISOString(),
+      });
+
+      setAmount("");
+      setNote("");
+      setType("deposit");
+      setSelectedGoalId("");
+
+      showMessage("success", "Transaction saved successfully.");
+    } catch (error) {
+      showMessage("error", "Something went wrong while saving.");
+    }
   }
 
   return (
@@ -94,6 +129,12 @@ export default function AddTransactionForm({
           </p>
         </div>
       </div>
+
+      {message && (
+        <div className={`form-message ${messageType}`}>
+          {message}
+        </div>
+      )}
 
       <div className="type-toggle">
         <button
@@ -157,9 +198,7 @@ export default function AddTransactionForm({
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
             />
-            <span className="unit-tag">
-              {unit || "UNIT"}
-            </span>
+            <span className="unit-tag">{unit || "UNIT"}</span>
           </div>
         </div>
 
@@ -190,7 +229,11 @@ export default function AddTransactionForm({
         </div>
       </div>
 
-      <button type="submit" className="primary-btn transaction-save-btn" disabled={!selectedAsset}>
+      <button
+        type="submit"
+        className="primary-btn transaction-save-btn"
+        disabled={!selectedAsset}
+      >
         Save Transaction
       </button>
     </form>
