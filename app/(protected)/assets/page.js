@@ -75,6 +75,19 @@ export default function AssetsPage() {
     }
 
     setAssets((prev) => [...(data || []), ...prev]);
+
+    await supabase.from("transactions").insert([
+      {
+        asset_id: newAsset.id,
+        asset_name: newAsset.name,
+        asset_category: newAsset.category,
+        type: "deposit",
+        amount: newAsset.amount,
+        unit: newAsset.unit,
+        note: "Initial balance",
+        user_id: user.id,
+      },
+    ]);
   }
 
   const activeAssets = assets.filter((a) => Number(a.amount) > 0);
