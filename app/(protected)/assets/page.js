@@ -80,22 +80,24 @@ export default function AssetsPage() {
 
     setAssets((prev) => [data, ...prev]);
 
-    const { error: txError } = await supabase.from("transactions").insert([
-      {
-        asset_id: data.id,
-        asset_name: data.name,
-        asset_category: data.category,
-        type: "deposit",
-        amount: data.amount,
-        unit: data.unit,
-        note: "Initial balance",
-        user_id: currentGroupId ? null : user.id,
-        group_id: currentGroupId || null,
-      },
-    ]);
+    if (Number(data.amount) > 0) {
+      const { error: txError } = await supabase.from("transactions").insert([
+        {
+          asset_id: data.id,
+          asset_name: data.name,
+          asset_category: data.category,
+          type: "deposit",
+          amount: data.amount,
+          unit: data.unit,
+          note: "Initial balance",
+          user_id: currentGroupId ? null : user.id,
+          group_id: currentGroupId || null,
+        },
+      ]);
 
-    if (txError) {
-      setError(txError.message);
+      if (txError) {
+        setError(txError.message);
+      }
     }
   }
 
