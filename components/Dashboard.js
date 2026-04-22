@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getCurrentScope } from "@/lib/getCurrentScope";
 import AssetCard from "./AssetCard";
 import GoalCard from "./GoalCard";
 
@@ -41,12 +42,9 @@ export default function Dashboard() {
     async function fetchData() {
       setLoading(true);
 
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+      const { user, currentGroupId } = await getCurrentScope();
 
-      if (userError || !user) {
+      if (!user) {
         setAssets([]);
         setGoals([]);
         setTransactions([]);
@@ -54,29 +52,38 @@ export default function Dashboard() {
         return;
       }
 
+      let assetsQuery = supabase
+        .from("assets")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      let goalsQuery = supabase
+        .from("goals")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      let transactionsQuery = supabase
+        .from("transactions")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (currentGroupId) {
+        assetsQuery = assetsQuery.eq("group_id", currentGroupId);
+        goalsQuery = goalsQuery.eq("group_id", currentGroupId);
+        transactionsQuery = transactionsQuery.eq("group_id", currentGroupId);
+      } else {
+        assetsQuery = assetsQuery.eq("user_id", user.id).is("group_id", null);
+        goalsQuery = goalsQuery.eq("user_id", user.id).is("group_id", null);
+        transactionsQuery = transactionsQuery
+          .eq("user_id", user.id)
+          .is("group_id", null);
+      }
+
       const [
         { data: assetsData, error: assetsError },
         { data: goalsData, error: goalsError },
         { data: transactionsData, error: transactionsError },
-      ] = await Promise.all([
-        supabase
-          .from("assets")
-          .select("*")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false }),
-
-        supabase
-          .from("goals")
-          .select("*")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false }),
-
-        supabase
-          .from("transactions")
-          .select("*")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false }),
-      ]);
+      ] = await Promise.all([assetsQuery, goalsQuery, transactionsQuery]);
 
       if (assetsError || goalsError || transactionsError) {
         setAssets([]);

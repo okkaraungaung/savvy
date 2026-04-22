@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import AddGoalForm from "@/components/AddGoalForm";
 import GoalCard from "@/components/GoalCard";
 import { createClient } from "@/lib/supabase/client";
+import { getCurrentScope } from "@/lib/getCurrentScope";
 
 export default function GoalsPage() {
   const [goals, setGoals] = useState([]);
@@ -16,34 +17,36 @@ export default function GoalsPage() {
     setLoading(true);
     setError("");
 
-    // ✅ get current user
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+    const { user, currentGroupId } = await getCurrentScope();
 
-    if (userError || !user) {
+    if (!user) {
       setError("User not found");
       setLoading(false);
       return;
     }
 
+    let goalsQuery = supabase
+      .from("goals")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    let assetsQuery = supabase
+      .from("assets")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (currentGroupId) {
+      goalsQuery = goalsQuery.eq("group_id", currentGroupId);
+      assetsQuery = assetsQuery.eq("group_id", currentGroupId);
+    } else {
+      goalsQuery = goalsQuery.eq("user_id", user.id).is("group_id", null);
+      assetsQuery = assetsQuery.eq("user_id", user.id).is("group_id", null);
+    }
+
     const [
       { data: goalsData, error: goalsError },
       { data: assetsData, error: assetsError },
-    ] = await Promise.all([
-      supabase
-        .from("goals")
-        .select("*")
-        .eq("user_id", user.id) // ✅ added
-        .order("created_at", { ascending: false }),
-
-      supabase
-        .from("assets")
-        .select("*")
-        .eq("user_id", user.id) // ✅ added
-        .order("created_at", { ascending: false }),
-    ]);
+    ] = await Promise.all([goalsQuery, assetsQuery]);
 
     if (goalsError) {
       setError(goalsError.message);
@@ -69,12 +72,9 @@ export default function GoalsPage() {
   async function addGoal(newGoal) {
     setError("");
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+    const { user, currentGroupId } = await getCurrentScope();
 
-    if (userError || !user) {
+    if (!user) {
       setError("User not found");
       return;
     }
@@ -84,7 +84,8 @@ export default function GoalsPage() {
       .insert([
         {
           ...newGoal,
-          user_id: user.id,
+          user_id: currentGroupId ? null : user.id,
+          group_id: currentGroupId || null,
         },
       ])
       .select();

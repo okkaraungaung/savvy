@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { User, Settings, Bell, LogOut } from "lucide-react";
+import ScopeSwitcher from "./ScopeSwitcher";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -89,6 +90,7 @@ export default function Navbar() {
         </div>
 
         <div className="nav-right">
+          {user && <ScopeSwitcher />}
           {!user && (
             <Link href="/auth/login" className="login-btn-nav">
               Login

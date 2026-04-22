@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import AddAssetForm from "@/components/AddAssetForm";
 import AssetCard from "@/components/AssetCard";
 import { createClient } from "@/lib/supabase/client";
+import { getCurrentScope } from "@/lib/getCurrentScope";
 
 export default function AssetsPage() {
   const [assets, setAssets] = useState([]);
@@ -15,22 +16,26 @@ export default function AssetsPage() {
     setLoading(true);
     setError("");
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+    const { user, currentGroupId } = await getCurrentScope();
 
-    if (userError || !user) {
+    if (!user) {
       setError("User not found");
       setLoading(false);
       return;
     }
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("assets")
       .select("*")
-      .eq("user_id", user.id)
       .order("created_at", { ascending: false });
+
+    if (currentGroupId) {
+      query = query.eq("group_id", currentGroupId);
+    } else {
+      query = query.eq("user_id", user.id).is("group_id", null);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       setError(error.message);
@@ -49,45 +54,49 @@ export default function AssetsPage() {
   async function addAsset(newAsset) {
     setError("");
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+    const { user, currentGroupId } = await getCurrentScope();
 
-    if (userError || !user) {
+    if (!user) {
       setError("User not found");
       return;
     }
 
+    const assetPayload = {
+      ...newAsset,
+      user_id: currentGroupId ? null : user.id,
+      group_id: currentGroupId || null,
+    };
+
     const { data, error } = await supabase
       .from("assets")
-      .insert([
-        {
-          ...newAsset,
-          user_id: user.id,
-        },
-      ])
-      .select();
+      .insert([assetPayload])
+      .select()
+      .single();
 
     if (error) {
       setError(error.message);
       return;
     }
 
-    setAssets((prev) => [...(data || []), ...prev]);
+    setAssets((prev) => [data, ...prev]);
 
-    await supabase.from("transactions").insert([
+    const { error: txError } = await supabase.from("transactions").insert([
       {
-        asset_id: newAsset.id,
-        asset_name: newAsset.name,
-        asset_category: newAsset.category,
+        asset_id: data.id,
+        asset_name: data.name,
+        asset_category: data.category,
         type: "deposit",
-        amount: newAsset.amount,
-        unit: newAsset.unit,
+        amount: data.amount,
+        unit: data.unit,
         note: "Initial balance",
-        user_id: user.id,
+        user_id: currentGroupId ? null : user.id,
+        group_id: currentGroupId || null,
       },
     ]);
+
+    if (txError) {
+      setError(txError.message);
+    }
   }
 
   const activeAssets = assets.filter((a) => Number(a.amount) > 0);

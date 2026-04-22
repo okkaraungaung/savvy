@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import AddTransactionForm from "@/components/AddTransactionForm";
 import TransactionList from "@/components/TransactionList";
 import { createClient } from "@/lib/supabase/client";
+import { getCurrentScope } from "@/lib/getCurrentScope";
 
 export default function TransactionsPage() {
   const [assets, setAssets] = useState([]);
@@ -17,40 +18,46 @@ export default function TransactionsPage() {
     setLoading(true);
     setError("");
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+    const { user, currentGroupId } = await getCurrentScope();
 
-    if (userError || !user) {
+    if (!user) {
       setError("User not found");
       setLoading(false);
       return;
+    }
+
+    let assetsQuery = supabase
+      .from("assets")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    let goalsQuery = supabase
+      .from("goals")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    let transactionsQuery = supabase
+      .from("transactions")
+      .select("*")
+      .order("created_at", { ascending: true });
+
+    if (currentGroupId) {
+      assetsQuery = assetsQuery.eq("group_id", currentGroupId);
+      goalsQuery = goalsQuery.eq("group_id", currentGroupId);
+      transactionsQuery = transactionsQuery.eq("group_id", currentGroupId);
+    } else {
+      assetsQuery = assetsQuery.eq("user_id", user.id).is("group_id", null);
+      goalsQuery = goalsQuery.eq("user_id", user.id).is("group_id", null);
+      transactionsQuery = transactionsQuery
+        .eq("user_id", user.id)
+        .is("group_id", null);
     }
 
     const [
       { data: assetsData, error: assetsError },
       { data: goalsData, error: goalsError },
       { data: transactionsData, error: transactionsError },
-    ] = await Promise.all([
-      supabase
-        .from("assets")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false }),
-
-      supabase
-        .from("goals")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false }),
-
-      supabase
-        .from("transactions")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: true }),
-    ]);
+    ] = await Promise.all([assetsQuery, goalsQuery, transactionsQuery]);
 
     if (assetsError) {
       setError(assetsError.message);
@@ -83,12 +90,9 @@ export default function TransactionsPage() {
   async function addTransaction(tx) {
     setError("");
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+    const { user, currentGroupId } = await getCurrentScope();
 
-    if (userError || !user) {
+    if (!user) {
       setError("User not found");
       return;
     }
@@ -129,16 +133,27 @@ export default function TransactionsPage() {
 
     const nextAssetAmount = Number(rawAssetAmount.toFixed(8));
 
-    const { error: assetUpdateError } = await supabase
+    let assetUpdateQuery = supabase
       .from("assets")
       .update({ amount: nextAssetAmount })
-      .eq("id", existingAsset.id)
-      .eq("user_id", user.id);
+      .eq("id", existingAsset.id);
+
+    if (currentGroupId) {
+      assetUpdateQuery = assetUpdateQuery.eq("group_id", currentGroupId);
+    } else {
+      assetUpdateQuery = assetUpdateQuery
+        .eq("user_id", user.id)
+        .is("group_id", null);
+    }
+
+    const { error: assetUpdateError } = await assetUpdateQuery;
 
     if (assetUpdateError) {
       setError(assetUpdateError.message);
       return;
     }
+
+    let nextGoalCurrent = null;
 
     if (selectedGoal) {
       const rawGoalCurrent =
@@ -146,13 +161,22 @@ export default function TransactionsPage() {
           ? Number(selectedGoal.current) + tx.amount
           : Number(selectedGoal.current) - tx.amount;
 
-      const nextGoalCurrent = Number(rawGoalCurrent.toFixed(8));
+      nextGoalCurrent = Number(rawGoalCurrent.toFixed(8));
 
-      const { error: goalUpdateError } = await supabase
+      let goalUpdateQuery = supabase
         .from("goals")
         .update({ current: nextGoalCurrent })
-        .eq("id", selectedGoal.id)
-        .eq("user_id", user.id);
+        .eq("id", selectedGoal.id);
+
+      if (currentGroupId) {
+        goalUpdateQuery = goalUpdateQuery.eq("group_id", currentGroupId);
+      } else {
+        goalUpdateQuery = goalUpdateQuery
+          .eq("user_id", user.id)
+          .is("group_id", null);
+      }
+
+      const { error: goalUpdateError } = await goalUpdateQuery;
 
       if (goalUpdateError) {
         setError(goalUpdateError.message);
@@ -172,7 +196,8 @@ export default function TransactionsPage() {
           unit: tx.unit,
           note: tx.note,
           goal_id: tx.goalId || null,
-          user_id: user.id,
+          user_id: currentGroupId ? null : user.id,
+          group_id: currentGroupId || null,
         },
       ])
       .select();
@@ -190,12 +215,7 @@ export default function TransactionsPage() {
       ),
     );
 
-    if (selectedGoal) {
-      const nextGoalCurrent =
-        tx.type === "deposit"
-          ? Number((Number(selectedGoal.current) + tx.amount).toFixed(8))
-          : Number((Number(selectedGoal.current) - tx.amount).toFixed(8));
-
+    if (selectedGoal && nextGoalCurrent !== null) {
       setGoals((prev) =>
         prev.map((goal) =>
           goal.id === selectedGoal.id

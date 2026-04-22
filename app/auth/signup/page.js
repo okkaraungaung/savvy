@@ -56,9 +56,19 @@ export default function SignupPage() {
     }
 
     setLoading(false);
-    setMessage(
-      "Account created. Please check your email to confirm your account.",
-    );
+    setMessage("Account created.");
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      await supabase.from("profiles").upsert([
+        {
+          id: user.id,
+          current_group_id: null,
+        },
+      ]);
+    }
     router.push("/auth/login");
   }
 
