@@ -38,11 +38,29 @@ export default function TransactionList({ transactions = [] }) {
       </div>
 
       <div className="transaction-filter">
-        <button onClick={() => setFilter("all")}>All</button>
+        <button
+          type="button"
+          className={filter === "all" ? "active" : ""}
+          onClick={() => setFilter("all")}
+        >
+          All
+        </button>
 
-        <button onClick={() => setFilter("deposit")}>Deposit</button>
+        <button
+          type="button"
+          className={filter === "deposit" ? "active deposit-btn" : "deposit-btn"}
+          onClick={() => setFilter("deposit")}
+        >
+          Deposit
+        </button>
 
-        <button onClick={() => setFilter("withdraw")}>Withdraw</button>
+        <button
+          type="button"
+          className={filter === "withdraw" ? "active withdraw-btn" : "withdraw-btn"}
+          onClick={() => setFilter("withdraw")}
+        >
+          Withdraw
+        </button>
       </div>
 
       <div className="transaction-list modern-transaction-list">
@@ -56,24 +74,57 @@ export default function TransactionList({ transactions = [] }) {
           filteredTransactions
             .slice()
             .reverse()
-            .map((tx) => (
-              <div key={tx.id} className="transaction-item">
-                <div>
-                  <p className="transaction-amount">
-                    {tx.type === "deposit" ? "+" : "-"} {tx.amount} {tx.unit}
-                  </p>
-                  <p className="muted">
-                    {tx.asset_name || tx.assetName} •{" "}
-                    {tx.asset_category || tx.assetCategory}
-                  </p>
-                  {tx.note && <p className="muted">{tx.note}</p>}
-                </div>
+            .map((tx) => {
+              const isDeposit = tx.type === "deposit";
 
-                <div className="muted">
-                  {formatDate(tx.created_at || tx.date)}
+              return (
+                <div
+                  key={tx.id}
+                  className="transaction-item modern-transaction-item"
+                >
+                  <div
+                    className={`transaction-icon ${
+                      isDeposit ? "deposit" : "withdraw"
+                    }`}
+                  >
+                    {isDeposit ? "↗" : "↘"}
+                  </div>
+
+                  <div className="transaction-main">
+                    <div className="transaction-top-row">
+                      <p
+                        className={`transaction-amount ${
+                          isDeposit ? "deposit-text" : "withdraw-text"
+                        }`}
+                      >
+                        {isDeposit ? "+" : "-"} {tx.amount} {tx.unit}
+                      </p>
+
+                      <span
+                        className={`transaction-badge ${
+                          isDeposit ? "deposit-badge" : "withdraw-badge"
+                        }`}
+                      >
+                        {tx.type}
+                      </span>
+                    </div>
+
+                    <p className="transaction-asset">
+                      {tx.asset_name || tx.assetName} <span>•</span>{" "}
+                      {tx.asset_category || tx.assetCategory}
+                    </p>
+
+                    {tx.note ? (
+                      <p className="transaction-note">{tx.note}</p>
+                    ) : null}
+                  </div>
+
+                  <div className="transaction-date">
+                    {formatDate(tx.created_at || tx.date)}
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
         )}
       </div>
     </div>
