@@ -2,17 +2,33 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { defaultState, loadState, saveState } from "@/lib/storage";
+import { createClient } from "@/lib/supabase/client";
 import AssetCard from "./AssetCard";
 import GoalCard from "./GoalCard";
 
 export default function Dashboard() {
-  const [state, setState] = useState(defaultState);
-  const [isReady, setIsReady] = useState(false);
+  const [assets, setAssets] = useState([]);
+  const [goals, setGoals] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all"); // all | deposit | withdraw
 
-  function formatDate(date) {
-    return new Date(date).toLocaleString("en-US", {
+  const supabase = createClient();
+
+  function formatDate(dateString) {
+    if (!dateString) return "-";
+
+    let safeDate = String(dateString).trim();
+    safeDate = safeDate.replace(" ", "T");
+    safeDate = safeDate.replace(/\.(\d{3})\d+/, ".$1");
+    safeDate = safeDate.replace(/\+00:00$/, "Z");
+    safeDate = safeDate.replace(/\+00$/, "Z");
+
+    const date = new Date(safeDate);
+
+    if (Number.isNaN(date.getTime())) return "Invalid date";
+
+    return date.toLocaleString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -22,35 +38,80 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
-    const saved = loadState();
-    setState(saved);
-    setIsReady(true);
+    async function fetchData() {
+      setLoading(true);
+
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        setAssets([]);
+        setGoals([]);
+        setTransactions([]);
+        setLoading(false);
+        return;
+      }
+
+      const [
+        { data: assetsData, error: assetsError },
+        { data: goalsData, error: goalsError },
+        { data: transactionsData, error: transactionsError },
+      ] = await Promise.all([
+        supabase
+          .from("assets")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
+
+        supabase
+          .from("goals")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
+
+        supabase
+          .from("transactions")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
+      ]);
+
+      if (assetsError || goalsError || transactionsError) {
+        setAssets([]);
+        setGoals([]);
+        setTransactions([]);
+        setLoading(false);
+        return;
+      }
+
+      setAssets(assetsData || []);
+      setGoals(goalsData || []);
+      setTransactions(transactionsData || []);
+      setLoading(false);
+    }
+
+    fetchData();
   }, []);
 
-  useEffect(() => {
-    if (!isReady) return;
-    saveState(state);
-  }, [state, isReady]);
-
   const totalAssets = useMemo(
-    () => state.assets.filter((a) => a.amount > 0).length,
-    [state.assets],
-  );
-  const totalGoals = useMemo(() => state.goals.length, [state.goals]);
-  const totalTransactions = useMemo(
-    () => state.transactions.length,
-    [state.transactions]
+    () => assets.filter((a) => Number(a.amount) > 0).length,
+    [assets],
   );
 
-  const previewAssets = state.assets.slice(0, 3);
-  const previewGoals = state.goals.slice(0, 3);
+  const totalGoals = useMemo(() => goals.length, [goals]);
+  const totalTransactions = useMemo(() => transactions.length, [transactions]);
+
+  const previewAssets = assets.filter((a) => Number(a.amount) > 0).slice(0, 3);
+  const previewGoals = goals.slice(0, 3);
 
   const filteredTransactions =
     filter === "all"
-      ? state.transactions
-      : state.transactions.filter((tx) => tx.type === filter);
+      ? transactions
+      : transactions.filter((tx) => tx.type === filter);
 
-  if (!isReady) {
+  if (loading) {
     return <div className="loading">Loading dashboard...</div>;
   }
 
@@ -124,9 +185,9 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* FILTER BUTTONS */}
         <div className="transaction-filter">
           <button
+            type="button"
             className={filter === "all" ? "active" : ""}
             onClick={() => setFilter("all")}
           >
@@ -134,13 +195,17 @@ export default function Dashboard() {
           </button>
 
           <button
-            className={filter === "deposit" ? "active deposit-btn" : "deposit-btn"}
+            type="button"
+            className={
+              filter === "deposit" ? "active deposit-btn" : "deposit-btn"
+            }
             onClick={() => setFilter("deposit")}
           >
             Deposit
           </button>
 
           <button
+            type="button"
             className={
               filter === "withdraw" ? "active withdraw-btn" : "withdraw-btn"
             }
@@ -150,7 +215,6 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* LIST */}
         <div className="transaction-list modern-transaction-list">
           {filteredTransactions.length === 0 ? (
             <div className="transaction-empty">
@@ -159,57 +223,57 @@ export default function Dashboard() {
               <p className="muted">No data for this filter.</p>
             </div>
           ) : (
-            filteredTransactions
-              .slice()
-              .reverse()
-              .map((tx) => {
-                const isDeposit = tx.type === "deposit";
+            filteredTransactions.map((tx) => {
+              const isDeposit = tx.type === "deposit";
 
-                return (
+              return (
+                <div
+                  key={tx.id}
+                  className="transaction-item modern-transaction-item"
+                >
                   <div
-                    key={tx.id}
-                    className="transaction-item modern-transaction-item"
+                    className={`transaction-icon ${
+                      isDeposit ? "deposit" : "withdraw"
+                    }`}
                   >
-                    <div
-                      className={`transaction-icon ${
-                        isDeposit ? "deposit" : "withdraw"
-                      }`}
-                    >
-                      {isDeposit ? "↗" : "↘"}
-                    </div>
+                    {isDeposit ? "↗" : "↘"}
+                  </div>
 
-                    <div className="transaction-main">
-                      <div className="transaction-top-row">
-                        <p
-                          className={`transaction-amount ${
-                            isDeposit ? "deposit-text" : "withdraw-text"
-                          }`}
-                        >
-                          {isDeposit ? "+" : "-"} {tx.amount} {tx.unit}
-                        </p>
-
-                        <span
-                          className={`transaction-badge ${
-                            isDeposit ? "deposit-badge" : "withdraw-badge"
-                          }`}
-                        >
-                          {tx.type}
-                        </span>
-                      </div>
-
-                      <p className="transaction-asset">
-                        {tx.assetName} <span>•</span> {tx.assetType}
+                  <div className="transaction-main">
+                    <div className="transaction-top-row">
+                      <p
+                        className={`transaction-amount ${
+                          isDeposit ? "deposit-text" : "withdraw-text"
+                        }`}
+                      >
+                        {isDeposit ? "+" : "-"} {tx.amount} {tx.unit}
                       </p>
 
-                      {tx.note ? (
-                        <p className="transaction-note">{tx.note}</p>
-                      ) : null}
+                      <span
+                        className={`transaction-badge ${
+                          isDeposit ? "deposit-badge" : "withdraw-badge"
+                        }`}
+                      >
+                        {tx.type}
+                      </span>
                     </div>
 
-                    <div className="transaction-date">{formatDate(tx.date)}</div>
+                    <p className="transaction-asset">
+                      {tx.asset_name || tx.assetName} <span>•</span>{" "}
+                      {tx.asset_category || tx.assetCategory || tx.assetType}
+                    </p>
+
+                    {tx.note ? (
+                      <p className="transaction-note">{tx.note}</p>
+                    ) : null}
                   </div>
-                );
-              })
+
+                  <div className="transaction-date">
+                    {formatDate(tx.created_at || tx.date)}
+                  </div>
+                </div>
+              );
+            })
           )}
         </div>
       </section>
