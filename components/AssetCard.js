@@ -1,25 +1,36 @@
 const assetEmoji = {
-  cash: "💵",
-  gold: "🪙",
+  currency: "💵",
+  metal: "🪙",
   crypto: "₿",
+  other: "📦",
 };
 
 export default function AssetCard({ asset }) {
   return (
-    <div className="card asset-card">
-      <div className="asset-top">
-        <div>
-          <p className="asset-type">{asset.type}</p>
-          <h3>{asset.name}</h3>
+    <div className="card asset-card modern-asset-card">
+      <div className="asset-card-header">
+        <div className="asset-info">
+          <p className="asset-type">{asset.category || asset.type}</p>
+          <h3 className="asset-name">{asset.name}</h3>
         </div>
-        <span className="asset-emoji">{assetEmoji[asset.type]}</span>
+
+        <div className="asset-emoji-badge">
+          {assetEmoji[asset.category || asset.type] || "💼"}
+        </div>
       </div>
 
-      <p className="asset-amount">
-        {asset.amount} <span>{asset.unit}</span>
-      </p>
+      <div className="asset-value">
+        <p className="asset-amount">
+          {asset.amount}
+          <span className="asset-unit">{asset.unit}</span>
+        </p>
+      </div>
 
-      {asset.note ? <p className="muted">{asset.note}</p> : null}
+      {asset.note && (
+        <div className="asset-note">
+          <p>{asset.note}</p>
+        </div>
+      )}
     </div>
   );
 }
