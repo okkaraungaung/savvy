@@ -16,6 +16,18 @@ export default function GoalsPage() {
     setLoading(true);
     setError("");
 
+    // ✅ get current user
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      setError("User not found");
+      setLoading(false);
+      return;
+    }
+
     const [
       { data: goalsData, error: goalsError },
       { data: assetsData, error: assetsError },
@@ -23,10 +35,13 @@ export default function GoalsPage() {
       supabase
         .from("goals")
         .select("*")
+        .eq("user_id", user.id) // ✅ added
         .order("created_at", { ascending: false }),
+
       supabase
         .from("assets")
         .select("*")
+        .eq("user_id", user.id) // ✅ added
         .order("created_at", { ascending: false }),
     ]);
 
@@ -54,9 +69,24 @@ export default function GoalsPage() {
   async function addGoal(newGoal) {
     setError("");
 
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      setError("User not found");
+      return;
+    }
+
     const { data, error } = await supabase
       .from("goals")
-      .insert([newGoal])
+      .insert([
+        {
+          ...newGoal,
+          user_id: user.id,
+        },
+      ])
       .select();
 
     if (error) {

@@ -15,9 +15,21 @@ export default function AssetsPage() {
     setLoading(true);
     setError("");
 
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      setError("User not found");
+      setLoading(false);
+      return;
+    }
+
     const { data, error } = await supabase
       .from("assets")
       .select("*")
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -37,9 +49,24 @@ export default function AssetsPage() {
   async function addAsset(newAsset) {
     setError("");
 
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      setError("User not found");
+      return;
+    }
+
     const { data, error } = await supabase
       .from("assets")
-      .insert([newAsset])
+      .insert([
+        {
+          ...newAsset,
+          user_id: user.id,
+        },
+      ])
       .select();
 
     if (error) {

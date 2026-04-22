@@ -17,6 +17,17 @@ export default function TransactionsPage() {
     setLoading(true);
     setError("");
 
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      setError("User not found");
+      setLoading(false);
+      return;
+    }
+
     const [
       { data: assetsData, error: assetsError },
       { data: goalsData, error: goalsError },
@@ -25,15 +36,20 @@ export default function TransactionsPage() {
       supabase
         .from("assets")
         .select("*")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false }),
+
       supabase
         .from("goals")
         .select("*")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false }),
+
       supabase
         .from("transactions")
         .select("*")
-        .order("created_at", { ascending: false }),
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: true }),
     ]);
 
     if (assetsError) {
@@ -66,6 +82,16 @@ export default function TransactionsPage() {
 
   async function addTransaction(tx) {
     setError("");
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      setError("User not found");
+      return;
+    }
 
     const existingAsset = assets.find(
       (asset) =>
@@ -106,7 +132,8 @@ export default function TransactionsPage() {
     const { error: assetUpdateError } = await supabase
       .from("assets")
       .update({ amount: nextAssetAmount })
-      .eq("id", existingAsset.id);
+      .eq("id", existingAsset.id)
+      .eq("user_id", user.id);
 
     if (assetUpdateError) {
       setError(assetUpdateError.message);
@@ -124,7 +151,8 @@ export default function TransactionsPage() {
       const { error: goalUpdateError } = await supabase
         .from("goals")
         .update({ current: nextGoalCurrent })
-        .eq("id", selectedGoal.id);
+        .eq("id", selectedGoal.id)
+        .eq("user_id", user.id);
 
       if (goalUpdateError) {
         setError(goalUpdateError.message);
@@ -144,6 +172,7 @@ export default function TransactionsPage() {
           unit: tx.unit,
           note: tx.note,
           goal_id: tx.goalId || null,
+          user_id: user.id,
         },
       ])
       .select();
