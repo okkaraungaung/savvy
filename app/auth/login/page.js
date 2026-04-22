@@ -125,7 +125,7 @@ export default function LoginPage() {
           {message ? <p className="auth-footer-text">{message}</p> : null}
 
           <p className="auth-footer-text">
-            Don&apos;t have an account? <Link href="/signup">Sign up here</Link>
+            Don&apos;t have an account? <Link href="/auth/signup">Sign up here</Link>
           </p>
         </div>
       </div>

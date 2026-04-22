@@ -80,9 +80,9 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.65);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid rgba(17, 24, 39, 0.06);
 }
 
 .nav-container {
@@ -106,6 +106,8 @@ body {
 
 .nav-right {
   justify-self: end;
+  display: flex;
+  align-items: center;
 }
 
 .nav-links {
@@ -161,6 +163,211 @@ body {
 .login-btn-nav:hover {
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(57, 184, 234, 0.25);
+}
+
+/* PROFILE WRAPPER */
+.profile-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* AVATAR BUTTON */
+.profile-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  cursor: pointer;
+  object-fit: cover;
+  display: block;
+  border: 2px solid rgba(255, 255, 255, 0.75);
+  box-shadow:
+    0 8px 20px rgba(34, 197, 94, 0.12),
+    0 4px 10px rgba(75, 185, 209, 0.18);
+  background: linear-gradient(135deg, var(--btn-front), var(--btn-end));
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.profile-avatar:hover {
+  transform: translateY(-1px) scale(1.03);
+  border-color: #61e7b5;
+  box-shadow:
+    0 12px 26px rgba(34, 197, 94, 0.18),
+    0 8px 18px rgba(75, 185, 209, 0.22);
+}
+
+.profile-avatar:active {
+  transform: scale(0.98);
+}
+
+/* If you use initials/avatar fallback in a div/button */
+.profile-avatar-fallback {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--btn-front), var(--btn-end));
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  border: 2px solid rgba(255, 255, 255, 0.75);
+  box-shadow:
+    0 8px 20px rgba(34, 197, 94, 0.12),
+    0 4px 10px rgba(75, 185, 209, 0.18);
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.profile-avatar-fallback:hover {
+  transform: translateY(-1px) scale(1.03);
+  border-color: #61e7b5;
+  box-shadow:
+    0 12px 26px rgba(34, 197, 94, 0.18),
+    0 8px 18px rgba(75, 185, 209, 0.22);
+}
+
+/* DROPDOWN */
+.profile-dropdown {
+  position: absolute;
+  top: 56px;
+  right: 0;
+  width: 250px;
+  padding: 10px;
+  border-radius: 20px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.92) 0%,
+    rgba(229, 246, 250, 0.96) 100%
+  );
+  border: 1px solid rgba(75, 185, 209, 0.18);
+  backdrop-filter: blur(16px);
+  box-shadow:
+    0 20px 40px rgba(15, 23, 42, 0.14),
+    0 8px 20px rgba(75, 185, 209, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 200;
+  animation: dropdownFade 0.18s ease;
+}
+
+@keyframes dropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Optional top user section */
+.profile-dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px 12px;
+}
+
+.profile-dropdown-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+.profile-dropdown-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.profile-dropdown-email {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #64748b;
+  word-break: break-word;
+}
+
+/* ITEM */
+.dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: none;
+  background: transparent;
+  color: #124454;
+  text-decoration: none;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.dropdown-item svg {
+  flex-shrink: 0;
+  color: #1b6b7d;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background: var(--box-color);
+  color: #0f172a;
+  transform: translateX(2px);
+}
+
+.dropdown-item:hover svg {
+  transform: translateX(2px);
+  color: #0f766e;
+}
+
+.dropdown-item:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(75, 185, 209, 0.2);
+}
+
+/* Logout button style */
+.logout-dropdown-btn {
+  width: 100%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.logout-dropdown-btn:hover {
+  background: linear-gradient(135deg, rgba(254, 226, 226, 0.95), rgba(254, 226, 226, 0.95));
+  color: #b91c1c;
+}
+
+.logout-dropdown-btn:hover svg {
+  color: #dc2626;
+}
+
+/* DIVIDER */
+.dropdown-divider {
+  height: 1px;
+  margin: 8px 4px;
+  background: linear-gradient(
+    90deg,
+    rgba(75, 185, 209, 0),
+    rgba(75, 185, 209, 0.3),
+    rgba(75, 185, 209, 0)
+  );
 }
 /* NAVBAR End*/
 
@@ -666,13 +873,9 @@ textarea:focus {
   align-items: center;
   justify-content: space-between;
   border-radius: 16px;
-  /* padding: 1px 7px; */
-  /* background: #f9fafb; */
-  /* border: 1px solid #e5e7eb; */
   transition: all 0.2s ease;
 }
 
-/* focus glow */
 /* INPUT */
 .amount-combined input {
   border: 1px solid #e5e7eb;
@@ -687,13 +890,10 @@ textarea:focus {
 .unit-tag {
   background: #ecfdf5;
   color: #065f46;
-
   padding: 6px 10px;
   border-radius: 10px;
-
   font-size: 13px;
   font-weight: 700;
-
   margin-left: 10px;
   white-space: nowrap;
 }
@@ -1005,6 +1205,17 @@ textarea:focus {
 }
 
 @media (max-width: 640px) {
+  .nav-container {
+    grid-template-columns: auto 1fr auto;
+    gap: 10px;
+  }
+
+  .nav-center {
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
   .nav-links {
     gap: 6px;
   }
@@ -1016,6 +1227,11 @@ textarea:focus {
 
   .logo-text {
     display: none;
+  }
+
+  .profile-dropdown {
+    width: 220px;
+    right: -6px;
   }
 }
 
