@@ -71,7 +71,7 @@ body {
 .logo-text {
   font-size: 20px;
   font-weight: 700;
-  color: #065f46;
+  color: var(--btn-font);
 }
 /* LOGO END */
 
@@ -108,6 +108,7 @@ body {
   justify-self: end;
   display: flex;
   align-items: center;
+  gap: 12px; /* spacing between scope switcher + avatar */
 }
 
 .nav-links {
@@ -370,6 +371,293 @@ body {
   );
 }
 /* NAVBAR End*/
+
+/* Group switcher start */
+.scope-switcher {
+  position: relative;
+  min-width: 220px;
+}
+
+.scope-trigger {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid rgba(75, 185, 209, 0.18);
+  border-radius: 18px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.86),
+    rgba(211, 242, 249, 0.72)
+  );
+  backdrop-filter: blur(12px);
+  padding: 3px 7px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  box-shadow:
+    0 10px 24px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  transition: all 0.22s ease;
+}
+
+.scope-trigger:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 14px 28px rgba(15, 23, 42, 0.1),
+    0 6px 16px rgba(75, 185, 209, 0.14);
+}
+
+.scope-switcher.open .scope-trigger {
+  border-color: rgba(75, 185, 209, 0.35);
+  box-shadow:
+    0 14px 30px rgba(15, 23, 42, 0.12),
+    0 0 0 4px rgba(75, 185, 209, 0.12);
+}
+
+.scope-trigger-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.scope-trigger-icon {
+  width: 33px;
+  height: 33px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--btn-front), var(--btn-end));
+  color: var(--btn-font);
+  box-shadow: 0 8px 18px rgba(75, 185, 209, 0.18);
+  flex-shrink: 0;
+}
+
+.scope-trigger-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  text-align: left;
+}
+
+.scope-trigger-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.scope-trigger-value {
+  font-size: 12px;
+  font-weight: 800;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scope-chevron {
+  color: #1b6b7d;
+  flex-shrink: 0;
+  transition: transform 0.22s ease;
+}
+
+.scope-switcher.open .scope-chevron {
+  transform: rotate(180deg);
+}
+
+.scope-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 280px;
+  padding: 12px;
+  border-radius: 22px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.96) 0%,
+    rgba(229, 246, 250, 0.96) 100%
+  );
+  border: 1px solid rgba(75, 185, 209, 0.16);
+  backdrop-filter: blur(16px);
+  box-shadow:
+    0 24px 44px rgba(15, 23, 42, 0.14),
+    0 10px 22px rgba(75, 185, 209, 0.1);
+  z-index: 300;
+  animation: scopeDropdownFade 0.18s ease;
+}
+
+@keyframes scopeDropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.scope-menu-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.scope-menu-title {
+  margin: 2px 8px 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.scope-divider {
+  height: 1px;
+  margin: 10px 4px;
+  background: linear-gradient(
+    90deg,
+    rgba(75, 185, 209, 0),
+    rgba(75, 185, 209, 0.32),
+    rgba(75, 185, 209, 0)
+  );
+}
+
+.scope-option {
+  width: 100%;
+  border: none;
+  background: transparent;
+  border-radius: 16px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  color: #124454;
+  font-size: 14px;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.scope-option:hover {
+  background: var(--box-color);
+  color: #0f172a;
+  transform: translateX(2px);
+}
+
+.scope-option.active {
+  background: linear-gradient(
+    135deg,
+    var(--btn-front),
+    var(--btn-end)
+  );
+  color: var(--btn-font);
+  box-shadow: inset 0 0 0 1px rgba(75, 185, 209, 0.08);
+}
+
+.scope-option-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.scope-option-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(211, 242, 249, 0.9);
+  color: #1b6b7d;
+  flex-shrink: 0;
+}
+
+.scope-option.active .scope-option-icon {
+  background: linear-gradient(135deg, var(--btn-front), var(--btn-end));
+  color: #0f766e;
+}
+
+@media (max-width: 640px) {
+  .scope-switcher {
+    min-width: 180px;
+    width: 100%;
+  }
+
+  .scope-menu {
+    width: 100%;
+    min-width: 240px;
+    right: 0;
+  }
+
+  .scope-trigger {
+    min-height: 48px;
+    padding: 10px 12px;
+  }
+
+  .scope-trigger-value {
+    font-size: 13px;
+  }
+}
+
+/* ACTION CONTAINER */
+.scope-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 6px 4px 4px;
+}
+
+/* CREATE BUTTON (keep your style) */
+.scope-create-btn {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  background: linear-gradient(135deg, var(--btn-front), var(--btn-end));
+  color: var(--btn-font);
+
+  transition: all 0.2s ease;
+}
+
+.scope-create-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(75, 185, 209, 0.25);
+}
+
+/* JOIN BUTTON */
+.scope-join-btn {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  background: transparent;
+  border: 1px solid rgba(75, 185, 209, 0.3);
+  color: #0f172a;
+
+  transition: all 0.2s ease;
+}
+
+.scope-join-btn:hover {
+  background: var(--box-color);
+  transform: translateY(-1px);
+}
+/* Group switcher end */
 
 /* HEADER Start*/
 .header {

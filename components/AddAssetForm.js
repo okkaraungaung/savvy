@@ -44,8 +44,6 @@ export default function AddAssetForm({ onAddAsset }) {
             Add a new asset to track your savings, metals, or crypto.
           </p>
         </div>
-
-        <div className="asset-form-badge">New</div>
       </div>
 
       <div className="form-grid asset-form-grid">
