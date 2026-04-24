@@ -137,12 +137,12 @@ export default function Navbar() {
                   </Link>
 
                   <Link
-                    href="/notifications"
+                    href="/about"
                     className="dropdown-item"
                     onClick={() => setOpen(false)}
                   >
                     <Bell size={18} />
-                    <span>Notifications</span>
+                    <span>About Us</span>
                   </Link>
 
                   <div className="dropdown-divider" />
