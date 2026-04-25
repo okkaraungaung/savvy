@@ -117,6 +117,7 @@ export default function Dashboard() {
     filter === "all"
       ? transactions
       : transactions.filter((tx) => tx.type === filter);
+  const previewTransactions = filteredTransactions.slice(0, 5);
 
   if (loading) {
     return <div className="loading">Loading dashboard...</div>;
@@ -223,14 +224,14 @@ export default function Dashboard() {
         </div>
 
         <div className="transaction-list modern-transaction-list">
-          {filteredTransactions.length === 0 ? (
+          {previewTransactions.length === 0 ? (
             <div className="transaction-empty">
               <div className="transaction-empty-icon">💸</div>
               <h3>No transactions</h3>
               <p className="muted">No data for this filter.</p>
             </div>
           ) : (
-            filteredTransactions.map((tx) => {
+            previewTransactions.map((tx) => {
               const isDeposit = tx.type === "deposit";
 
               return (
