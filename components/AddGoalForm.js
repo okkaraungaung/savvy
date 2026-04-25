@@ -18,6 +18,8 @@ export default function AddGoalForm({ assets = [], onAddGoal }) {
 
     const parsedTarget = Number(target);
     const parsedCurrent = Number(current);
+    const normalizedCurrent =
+      Number.isNaN(parsedCurrent) || parsedCurrent < 0 ? 0 : parsedCurrent;
 
     if (
       !title.trim() ||
@@ -31,8 +33,7 @@ export default function AddGoalForm({ assets = [], onAddGoal }) {
     onAddGoal({
       title: title.trim(),
       target: parsedTarget,
-      current:
-        Number.isNaN(parsedCurrent) || parsedCurrent < 0 ? 0 : parsedCurrent,
+      current: normalizedCurrent,
       unit: unit.trim(),
       deadline,
     });
@@ -74,7 +75,7 @@ export default function AddGoalForm({ assets = [], onAddGoal }) {
 
         <select value={unit} onChange={(e) => setUnit(e.target.value)}>
           <option value="">Select unit</option>
-          {[...new Set(assets.map((asset) => asset.unit))].map((u) => (
+          {uniqueUnits.map((u) => (
             <option key={u} value={u}>
               {u}
             </option>
