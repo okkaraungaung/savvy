@@ -128,15 +128,6 @@ export default function Navbar() {
                   </Link>
 
                   <Link
-                    href="/settings"
-                    className="dropdown-item"
-                    onClick={() => setOpen(false)}
-                  >
-                    <Settings size={18} />
-                    <span>Settings</span>
-                  </Link>
-
-                  <Link
                     href="/about"
                     className="dropdown-item"
                     onClick={() => setOpen(false)}

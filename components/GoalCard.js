@@ -48,16 +48,10 @@ export default function GoalCard({ goal, onUseGoal, onCancelGoal }) {
           {onCancelGoal ? (
             <button
               type="button"
+              className="primary-btn"
               onClick={() => onCancelGoal(goal.id)}
               style={{
                 marginTop: 0,
-                border: "1px solid #fecaca",
-                background: "#fff1f2",
-                color: "#be123c",
-                borderRadius: 14,
-                padding: "10px 18px",
-                fontWeight: 700,
-                cursor: "pointer",
               }}
             >
               Cancel Goal
