@@ -6,37 +6,17 @@ import { createClient } from "@/lib/supabase/client";
 import { getCurrentScope } from "@/lib/getCurrentScope";
 import AssetCard from "./AssetCard";
 import GoalCard from "./GoalCard";
+import TransactionCard from "./TransactionCard";
+import { attachUsersToTransactions } from "@/lib/attachUsersToTransactions";
 
 export default function Dashboard() {
   const [assets, setAssets] = useState([]);
   const [goals, setGoals] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all"); // all | deposit | withdraw
+  const [filter, setFilter] = useState("all");
 
   const supabase = createClient();
-
-  function formatDate(dateString) {
-    if (!dateString) return "-";
-
-    let safeDate = String(dateString).trim();
-    safeDate = safeDate.replace(" ", "T");
-    safeDate = safeDate.replace(/\.(\d{3})\d+/, ".$1");
-    safeDate = safeDate.replace(/\+00:00$/, "Z");
-    safeDate = safeDate.replace(/\+00$/, "Z");
-
-    const date = new Date(safeDate);
-
-    if (Number.isNaN(date.getTime())) return "Invalid date";
-
-    return date.toLocaleString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  }
 
   useEffect(() => {
     async function fetchData() {
@@ -93,9 +73,17 @@ export default function Dashboard() {
         return;
       }
 
+      const transactionsWithUsers = await attachUsersToTransactions({
+        supabase,
+        transactionsData,
+        currentUserId: user.id,
+      });
+
+      console.log(transactionsWithUsers);
+
       setAssets(assetsData || []);
       setGoals(goalsData || []);
-      setTransactions(transactionsData || []);
+      setTransactions(transactionsWithUsers);
       setLoading(false);
     }
 
@@ -117,6 +105,7 @@ export default function Dashboard() {
     filter === "all"
       ? transactions
       : transactions.filter((tx) => tx.type === filter);
+
   const previewTransactions = filteredTransactions.slice(0, 5);
 
   if (loading) {
@@ -231,57 +220,9 @@ export default function Dashboard() {
               <p className="muted">No data for this filter.</p>
             </div>
           ) : (
-            previewTransactions.map((tx) => {
-              const isDeposit = tx.type === "deposit";
-
-              return (
-                <div
-                  key={tx.id}
-                  className="transaction-item modern-transaction-item"
-                >
-                  <div
-                    className={`transaction-icon ${
-                      isDeposit ? "deposit" : "withdraw"
-                    }`}
-                  >
-                    {isDeposit ? "↗" : "↘"}
-                  </div>
-
-                  <div className="transaction-main">
-                    <div className="transaction-top-row">
-                      <p
-                        className={`transaction-amount ${
-                          isDeposit ? "deposit-text" : "withdraw-text"
-                        }`}
-                      >
-                        {isDeposit ? "+" : "-"} {tx.amount} {tx.unit}
-                      </p>
-
-                      <span
-                        className={`transaction-badge ${
-                          isDeposit ? "deposit-badge" : "withdraw-badge"
-                        }`}
-                      >
-                        {tx.type}
-                      </span>
-                    </div>
-
-                    <p className="transaction-asset">
-                      {tx.asset_name || tx.assetName} <span>•</span>{" "}
-                      {tx.asset_category || tx.assetCategory || tx.assetType}
-                    </p>
-
-                    {tx.note ? (
-                      <p className="transaction-note">{tx.note}</p>
-                    ) : null}
-                  </div>
-
-                  <div className="transaction-date">
-                    {formatDate(tx.created_at || tx.date)}
-                  </div>
-                </div>
-              );
-            })
+            previewTransactions.map((tx) => (
+              <TransactionCard key={tx.id} tx={tx} />
+            ))
           )}
         </div>
       </section>
