@@ -5,6 +5,7 @@ import AddTransactionForm from "@/components/AddTransactionForm";
 import TransactionList from "@/components/TransactionList";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentScope } from "@/lib/getCurrentScope";
+import { attachUsersToTransactions } from "@/lib/attachUsersToTransactions";
 
 export default function TransactionsPage() {
   const [assets, setAssets] = useState([]);
@@ -77,9 +78,15 @@ export default function TransactionsPage() {
       return;
     }
 
+    const transactionsWithUsers = await attachUsersToTransactions({
+      supabase,
+      transactionsData,
+      currentUserId: user.id,
+    });
+
     setAssets(assetsData || []);
     setGoals(goalsData || []);
-    setTransactions(transactionsData || []);
+    setTransactions(transactionsWithUsers);
     setLoading(false);
   }
 
@@ -196,7 +203,7 @@ export default function TransactionsPage() {
           unit: tx.unit,
           note: tx.note,
           goal_id: tx.goalId || null,
-          user_id: currentGroupId ? null : user.id,
+          user_id: user.id,
           group_id: currentGroupId || null,
         },
       ])
@@ -206,6 +213,12 @@ export default function TransactionsPage() {
       setError(insertError.message);
       return;
     }
+
+    const newTransactions = await attachUsersToTransactions({
+      supabase,
+      transactionsData: data || [],
+      currentUserId: user.id,
+    });
 
     setAssets((prev) =>
       prev.map((asset) =>
@@ -225,7 +238,7 @@ export default function TransactionsPage() {
       );
     }
 
-    setTransactions((prev) => [...(data || []), ...prev]);
+    setTransactions((prev) => [...newTransactions, ...prev]);
   }
 
   if (loading) {
