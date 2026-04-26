@@ -63,7 +63,7 @@ export default function AssetsPage() {
 
     const assetPayload = {
       ...newAsset,
-      user_id: currentGroupId ? null : user.id,
+      user_id: user.id,
       group_id: currentGroupId || null,
     };
 
@@ -90,7 +90,7 @@ export default function AssetsPage() {
           amount: data.amount,
           unit: data.unit,
           note: "Initial balance",
-          user_id: currentGroupId ? null : user.id,
+          user_id: user.id,
           group_id: currentGroupId || null,
         },
       ]);

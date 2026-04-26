@@ -22,9 +22,39 @@ export default function ProfilePage() {
         data: { user },
       } = await supabase.auth.getUser();
 
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
       setUser(user);
-      setFullName(user?.user_metadata?.full_name || "");
-      setAvatarUrl(user?.user_metadata?.avatar_url || "");
+
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("full_name, avatar_url, email")
+        .eq("id", user.id)
+        .single();
+
+      if (error && error.code !== "PGRST116") {
+        setMessage(error.message);
+        setLoading(false);
+        return;
+      }
+
+      if (profile) {
+        setFullName(profile.full_name || "");
+        setAvatarUrl(profile.avatar_url || "");
+      } else {
+        await supabase.from("profiles").insert([
+          {
+            id: user.id,
+            email: user.email,
+            full_name: "",
+            avatar_url: "",
+          },
+        ]);
+      }
+
       setLoading(false);
     }
 
@@ -36,11 +66,18 @@ export default function ProfilePage() {
     setSaving(true);
     setMessage("");
 
-    const { data, error } = await supabase.auth.updateUser({
-      data: {
-        full_name: fullName,
-        avatar_url: avatarUrl,
-      },
+    if (!user) {
+      setMessage("User not found.");
+      setSaving(false);
+      return;
+    }
+
+    const { error } = await supabase.from("profiles").upsert({
+      id: user.id,
+      email: user.email,
+      full_name: fullName,
+      avatar_url: avatarUrl,
+      updated_at: new Date().toISOString(),
     });
 
     if (error) {
@@ -49,7 +86,6 @@ export default function ProfilePage() {
       return;
     }
 
-    setUser(data.user);
     setMessage("Profile updated successfully.");
     setSaving(false);
   }
@@ -126,7 +162,12 @@ export default function ProfilePage() {
           </div>
 
           {message && <p className="form-message success">{message}</p>}
-          <button type="submit" className="primary-btn profile-save-btn" disabled={saving}>
+
+          <button
+            type="submit"
+            className="primary-btn profile-save-btn"
+            disabled={saving}
+          >
             <Save size={18} />
             {saving ? "Saving..." : "Save Changes"}
           </button>
