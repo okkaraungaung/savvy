@@ -9,7 +9,7 @@ export default function AddGoalForm({ assets = [], onAddGoal }) {
   const [unit, setUnit] = useState("");
   const [deadline, setDeadline] = useState("");
 
-  // ✅ NEW
+  // NEW
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState(""); // success | error
 
@@ -17,7 +17,7 @@ export default function AddGoalForm({ assets = [], onAddGoal }) {
     return [...new Set(assets.map((asset) => asset.unit).filter(Boolean))];
   }, [assets]);
 
-  // ✅ auto-hide message (same as transaction form)
+  //auto-hide message (same as transaction form)
   useEffect(() => {
     if (!message) return;
 
@@ -42,7 +42,7 @@ export default function AddGoalForm({ assets = [], onAddGoal }) {
     const normalizedCurrent =
       Number.isNaN(parsedCurrent) || parsedCurrent < 0 ? 0 : parsedCurrent;
 
-    // ✅ validation messages
+    //validation messages
     if (!title.trim()) {
       showMessage("error", "Please enter goal title.");
       return;
@@ -74,7 +74,7 @@ export default function AddGoalForm({ assets = [], onAddGoal }) {
       setUnit("");
       setDeadline("");
 
-      // ✅ success message
+      //success message
       showMessage("success", "Goal added successfully!");
     } catch (err) {
       showMessage("error", "Something went wrong.");

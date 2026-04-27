@@ -36,8 +36,8 @@ export default function AddAssetForm({ onAddAsset }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="card form-card asset-form-card">
-      <div className="asset-form-header">
+    <form onSubmit={handleSubmit} className="goal-form-card asset-form-card">
+      <div className="goal-form-header">
         <div>
           <h2>Add New Asset</h2>
           <p className="muted">
@@ -46,7 +46,7 @@ export default function AddAssetForm({ onAddAsset }) {
         </div>
       </div>
 
-      <div className="form-grid asset-form-grid">
+      <div className="goal-form-grid">
         <div className="field-group">
           <label>Category</label>
           <select value={category} onChange={(e) => setCategory(e.target.value)}>

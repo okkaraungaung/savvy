@@ -120,122 +120,120 @@ export default function AddTransactionForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="card form-card transaction-form-card">
-      <div className="transaction-form-header">
-        <div>
-          <h2>Add Transaction</h2>
-          <p className="muted">
-            Record a deposit or withdrawal for your asset.
-          </p>
-        </div>
+  <form onSubmit={handleSubmit} className="goal-form-card transaction-form-card">
+    <div className="goal-form-header">
+      <div>
+        <h2>Add Transaction</h2>
+        <p>Record a deposit or withdrawal for your asset.</p>
       </div>
+    </div>
 
-      {message && (
-        <div className={`form-message ${messageType}`}>
-          {message}
-        </div>
-      )}
-
-      <div className="type-toggle">
-        <button
-          type="button"
-          className={type === "deposit" ? "active deposit" : ""}
-          onClick={() => setType("deposit")}
-        >
-          Deposit
-        </button>
-
-        <button
-          type="button"
-          className={type === "withdraw" ? "active withdraw" : ""}
-          onClick={() => setType("withdraw")}
-        >
-          Withdraw
-        </button>
+    {message && (
+      <div className={`form-message ${messageType}`}>
+        {message}
       </div>
+    )}
 
-      <div className="form-grid">
-        <div className="field-group">
-          <label>Asset Category</label>
-          <select
-            value={assetCategory}
-            onChange={(e) => handleCategoryChange(e.target.value)}
-          >
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="field-group">
-          <label>Asset</label>
-          <select
-            value={selectedAsset}
-            onChange={(e) => handleAssetSelect(e.target.value)}
-            disabled={filteredAssets.length === 0}
-          >
-            {filteredAssets.length === 0 ? (
-              <option value="">No assets in this category</option>
-            ) : (
-              filteredAssets.map((asset) => (
-                <option key={asset.id} value={asset.name}>
-                  {asset.name}
-                </option>
-              ))
-            )}
-          </select>
-        </div>
-
-        <div className="field-group full">
-          <label>Amount</label>
-          <div className={`amount-combined ${type}`}>
-            <input
-              type="number"
-              step="any"
-              placeholder="0.00"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
-            <span className="unit-tag">{unit || "UNIT"}</span>
-          </div>
-        </div>
-
-        <div className="field-group">
-          <label>Goal</label>
-          <select
-            value={selectedGoalId}
-            onChange={(e) => setSelectedGoalId(e.target.value)}
-            disabled={!unit.trim()}
-          >
-            <option value="">No goal</option>
-            {filteredGoals.map((goal) => (
-              <option key={goal.id} value={goal.id}>
-                {goal.title} ({goal.unit})
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="field-group">
-          <label>Note</label>
-          <input
-            type="text"
-            placeholder="Write a short note"
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-          />
-        </div>
-      </div>
+    <div className="type-toggle">
+      <button
+        type="button"
+        className={type === "deposit" ? "active deposit" : ""}
+        onClick={() => setType("deposit")}
+      >
+        Deposit
+      </button>
 
       <button
-        type="submit"
-        className="primary-btn transaction-save-btn"
-        disabled={!selectedAsset}
+        type="button"
+        className={type === "withdraw" ? "active withdraw" : ""}
+        onClick={() => setType("withdraw")}
       >
-        Save Transaction
+        Withdraw
       </button>
-    </form>
-  );
+    </div>
+
+    <div className="goal-form-grid">
+      <div className="field-group">
+        <label>Asset Category</label>
+        <select
+          value={assetCategory}
+          onChange={(e) => handleCategoryChange(e.target.value)}
+        >
+          {categories.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="field-group">
+        <label>Asset</label>
+        <select
+          value={selectedAsset}
+          onChange={(e) => handleAssetSelect(e.target.value)}
+          disabled={filteredAssets.length === 0}
+        >
+          {filteredAssets.length === 0 ? (
+            <option value="">No assets in this category</option>
+          ) : (
+            filteredAssets.map((asset) => (
+              <option key={asset.id} value={asset.name}>
+                {asset.name}
+              </option>
+            ))
+          )}
+        </select>
+      </div>
+
+      <div className="field-group">
+        <label>Goal</label>
+        <select
+          value={selectedGoalId}
+          onChange={(e) => setSelectedGoalId(e.target.value)}
+          disabled={!unit.trim()}
+        >
+          <option value="">No goal</option>
+          {filteredGoals.map((goal) => (
+            <option key={goal.id} value={goal.id}>
+              {goal.title} ({goal.unit})
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="field-group">
+        <label>Amount</label>
+        <div className={`amount-combined ${type}`}>
+          <input
+            type="number"
+            step="any"
+            placeholder="1000"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+          />
+          <span className="unit-tag">{unit || "UNIT"}</span>
+        </div>
+      </div>
+
+      <div className="field-group full">
+        <label>Note</label>
+        <input
+          type="text"
+          placeholder="Write a short note"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+      </div>
+    </div>
+
+    <button
+      type="submit"
+      className="goal-submit-btn transaction-save-btn"
+      disabled={!selectedAsset}
+    >
+      Save Transaction
+    </button>
+  </form>
+);
 }
