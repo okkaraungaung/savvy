@@ -66,6 +66,7 @@ export default function SignupPage() {
         {
           id: user.id,
           current_group_id: null,
+          full_name: formData.name,
         },
       ]);
     }
