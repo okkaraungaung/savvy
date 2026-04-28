@@ -101,7 +101,7 @@ export default function AddGoalForm({ assets = [], onAddGoal }) {
           <label>Goal Title</label>
           <input
             type="text"
-            placeholder="Example: Save for laptop"
+            placeholder="e.g. Save for laptop"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
@@ -112,7 +112,7 @@ export default function AddGoalForm({ assets = [], onAddGoal }) {
           <input
             type="number"
             step="any"
-            placeholder="1000"
+            placeholder="0.00"
             value={target}
             onChange={(e) => setTarget(e.target.value)}
           />
@@ -123,7 +123,7 @@ export default function AddGoalForm({ assets = [], onAddGoal }) {
           <input
             type="number"
             step="any"
-            placeholder="0"
+            placeholder="0.00"
             value={current}
             onChange={(e) => setCurrent(e.target.value)}
           />

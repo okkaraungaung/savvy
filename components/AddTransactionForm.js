@@ -208,7 +208,7 @@ export default function AddTransactionForm({
           <input
             type="number"
             step="any"
-            placeholder="1000"
+            placeholder="0.00"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
           />
