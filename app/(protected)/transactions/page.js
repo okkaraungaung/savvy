@@ -101,7 +101,7 @@ export default function TransactionsPage() {
 
     if (!user) {
       setError("User not found");
-      return;
+      return false;
     }
 
     const existingAsset = assets.find(
@@ -112,12 +112,12 @@ export default function TransactionsPage() {
 
     if (!existingAsset) {
       setError("Asset not found.");
-      return;
+      return false;
     }
 
     if (tx.type === "withdraw" && Number(existingAsset.amount) < tx.amount) {
       setError("Not enough asset balance.");
-      return;
+      return false;
     }
 
     const selectedGoal = tx.goalId
@@ -130,7 +130,7 @@ export default function TransactionsPage() {
       Number(selectedGoal.current) < tx.amount
     ) {
       setError("Not enough goal balance.");
-      return;
+      return false;
     }
 
     const rawAssetAmount =
@@ -157,7 +157,7 @@ export default function TransactionsPage() {
 
     if (assetUpdateError) {
       setError(assetUpdateError.message);
-      return;
+      return false;
     }
 
     let nextGoalCurrent = null;
@@ -187,7 +187,7 @@ export default function TransactionsPage() {
 
       if (goalUpdateError) {
         setError(goalUpdateError.message);
-        return;
+        return false;
       }
     }
 
@@ -211,7 +211,7 @@ export default function TransactionsPage() {
 
     if (insertError) {
       setError(insertError.message);
-      return;
+      return false;
     }
 
     const newTransactions = await attachUsersToTransactions({
@@ -238,7 +238,9 @@ export default function TransactionsPage() {
       );
     }
 
-    setTransactions((prev) => [...newTransactions, ...prev]);
+    setTransactions((prev) => [...prev, ...newTransactions]);
+
+    return true;
   }
 
   if (loading) {
@@ -255,11 +257,11 @@ export default function TransactionsPage() {
           </div>
         </div>
 
-        {error ? (
+        {/* {error ? (
           <div className="card">
             <p className="muted">Error: {error}</p>
           </div>
-        ) : null}
+        ) : null} */}
 
         <div className="page-section">
           <AddTransactionForm

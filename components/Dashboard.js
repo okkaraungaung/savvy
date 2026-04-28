@@ -79,8 +79,6 @@ export default function Dashboard() {
         currentUserId: user.id,
       });
 
-      console.log(transactionsWithUsers);
-
       setAssets(assetsData || []);
       setGoals(goalsData || []);
       setTransactions(transactionsWithUsers);
