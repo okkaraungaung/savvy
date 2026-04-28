@@ -121,9 +121,7 @@ export default function ScopeSwitcher() {
 
           <div className="scope-trigger-text">
             <span className="scope-trigger-label">Current scope</span>
-            <span className="scope-trigger-value">
-              {selectedLabel}
-            </span>
+            <span className="scope-trigger-value">{selectedLabel}</span>
           </div>
         </div>
 
@@ -139,8 +137,9 @@ export default function ScopeSwitcher() {
 
             <button
               type="button"
-              className={`scope-option ${selectedValue === "personal" ? "active" : ""
-                }`}
+              className={`scope-option ${
+                selectedValue === "personal" ? "active" : ""
+              }`}
               onClick={() => handleSelect("personal")}
             >
               <div className="scope-option-left">
@@ -150,9 +149,7 @@ export default function ScopeSwitcher() {
                 <span>Personal</span>
               </div>
 
-              {selectedValue === "personal" && (
-                <Check size={16} />
-              )}
+              {selectedValue === "personal" && <Check size={16} />}
             </button>
           </div>
 
@@ -162,14 +159,27 @@ export default function ScopeSwitcher() {
               <div className="scope-divider" />
 
               <div className="scope-menu-group">
-                <p className="scope-menu-title">Groups</p>
+                <div className="scope-menu-header">
+                  <p className="scope-menu-title">Groups</p>
+                  <button
+                    type="button"
+                    className="scope-menu-toggle"
+                    onClick={() => {
+                      setOpen(false);
+                      router.push("/groups");
+                    }}
+                  >
+                    Show Groups
+                  </button>
+                </div>
 
                 {groups.map((group) => (
                   <button
                     key={group.id}
                     type="button"
-                    className={`scope-option ${selectedValue === group.id ? "active" : ""
-                      }`}
+                    className={`scope-option ${
+                      selectedValue === group.id ? "active" : ""
+                    }`}
                     onClick={() => handleSelect(group.id)}
                   >
                     <div className="scope-option-left">
@@ -179,9 +189,7 @@ export default function ScopeSwitcher() {
                       <span>{group.name}</span>
                     </div>
 
-                    {selectedValue === group.id && (
-                      <Check size={16} />
-                    )}
+                    {selectedValue === group.id && <Check size={16} />}
                   </button>
                 ))}
               </div>

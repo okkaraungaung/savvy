@@ -476,6 +476,35 @@ body {
   font-size: 11px;
 }
 
+.scope-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 2px 8px 6px;
+}
+
+.scope-menu-header .scope-menu-title {
+  margin: 0;
+}
+
+.scope-menu-toggle {
+  border: none;
+  background: transparent;
+  color: #1b6b7d;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.scope-menu-toggle:hover {
+  color: #0f766e;
+  transform: translateX(1px);
+}
+
 .scope-divider {
   margin: 10px 4px;
 }
@@ -1984,6 +2013,10 @@ textarea:focus,
     width: 100%;
     min-width: 240px;
     right: 0;
+  }
+
+  .scope-menu-header {
+    align-items: flex-start;
   }
 
   .scope-trigger {
