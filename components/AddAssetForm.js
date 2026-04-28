@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const categories = ["currency", "crypto", "metal", "other"];
 
@@ -11,28 +11,69 @@ export default function AddAssetForm({ onAddAsset }) {
   const [unit, setUnit] = useState("");
   const [note, setNote] = useState("");
 
+  // ✅ NEW: message state
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState(""); // success | error
+
+  // ✅ auto-hide message
+  useEffect(() => {
+    if (!message) return;
+
+    const timer = setTimeout(() => {
+      setMessage("");
+      setMessageType("");
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [message]);
+
+  function showMessage(type, text) {
+    setMessageType(type);
+    setMessage(text);
+  }
+
   function handleSubmit(e) {
     e.preventDefault();
 
     const parsedAmount = Number(amount);
 
-    if (!name.trim() || !unit.trim() || Number.isNaN(parsedAmount) || parsedAmount < 0) {
+    // ✅ validation with messages
+    if (!name.trim()) {
+      showMessage("error", "Please enter asset name.");
       return;
     }
 
-    onAddAsset({
-      category,
-      name: name.trim(),
-      amount: parsedAmount,
-      unit: unit.trim(),
-      note: note.trim(),
-    });
+    if (!unit.trim()) {
+      showMessage("error", "Please enter unit.");
+      return;
+    }
 
-    setCategory("currency");
-    setName("");
-    setAmount("");
-    setUnit("");
-    setNote("");
+    if (Number.isNaN(parsedAmount) || parsedAmount < 0) {
+      showMessage("error", "Amount must be valid and >= 0.");
+      return;
+    }
+
+    try {
+      onAddAsset({
+        category,
+        name: name.trim(),
+        amount: parsedAmount,
+        unit: unit.trim(),
+        note: note.trim(),
+      });
+
+      // reset form
+      setCategory("currency");
+      setName("");
+      setAmount("");
+      setUnit("");
+      setNote("");
+
+      // success message
+      showMessage("success", "Asset added successfully!");
+    } catch (err) {
+      showMessage("error", "Something went wrong.");
+    }
   }
 
   return (
@@ -45,6 +86,13 @@ export default function AddAssetForm({ onAddAsset }) {
           </p>
         </div>
       </div>
+
+      {/* MESSAGE BOX */}
+      {message && (
+        <div className={`form-message ${messageType}`}>
+          {message}
+        </div>
+      )}
 
       <div className="goal-form-grid">
         <div className="field-group">
