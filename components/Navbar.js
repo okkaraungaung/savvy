@@ -4,23 +4,43 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { User, Settings, Bell, LogOut } from "lucide-react";
+import { User, Bell, LogOut } from "lucide-react";
 import ScopeSwitcher from "./ScopeSwitcher";
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
+
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [open, setOpen] = useState(false);
 
   function isActive(path) {
     return pathname === path ? "nav-link active" : "nav-link";
   }
 
+  async function loadProfile(userId) {
+    const supabase = createClient();
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("avatar_url, full_name")
+      .eq("id", userId)
+      .single();
+
+    if (!error) {
+      setProfile(data);
+    }
+  }
+
   async function handleLogout() {
     const supabase = createClient();
+
     await supabase.auth.signOut();
+    setUser(null);
+    setProfile(null);
     setOpen(false);
+
     router.push("/auth/login");
     router.refresh();
   }
@@ -34,14 +54,28 @@ export default function Navbar() {
       } = await supabase.auth.getUser();
 
       setUser(user);
+
+      if (user) {
+        await loadProfile(user.id);
+      } else {
+        setProfile(null);
+      }
     }
 
     getUser();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const currentUser = session?.user || null;
+
+      setUser(currentUser);
+
+      if (currentUser) {
+        await loadProfile(currentUser.id);
+      } else {
+        setProfile(null);
+      }
     });
 
     return () => {
@@ -91,6 +125,7 @@ export default function Navbar() {
 
         <div className="nav-right">
           {user && <ScopeSwitcher />}
+
           {!user && (
             <Link href="/auth/login" className="login-btn-nav">
               Login
@@ -99,9 +134,9 @@ export default function Navbar() {
 
           {user && (
             <div className="profile-wrapper">
-              {user.user_metadata?.avatar_url ? (
+              {profile?.avatar_url ? (
                 <img
-                  src={user.user_metadata.avatar_url}
+                  src={profile.avatar_url}
                   alt="User avatar"
                   className="profile-avatar"
                   onClick={() => setOpen((prev) => !prev)}
