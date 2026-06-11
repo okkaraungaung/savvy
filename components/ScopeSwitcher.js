@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { GROUP_MEMBERSHIP_CHANGED_EVENT } from "@/lib/groupMembershipEvents";
 import {
   ChevronDown,
   Check,
@@ -17,7 +18,12 @@ import {
 import { useRouter } from "next/navigation";
 
 export default function ScopeSwitcher() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabaseRef = useRef(null);
+  if (!supabaseRef.current) {
+    supabaseRef.current = createClient();
+  }
+
+  const supabase = supabaseRef.current;
   const router = useRouter();
 
   const [groups, setGroups] = useState([]);
@@ -27,46 +33,87 @@ export default function ScopeSwitcher() {
   const [open, setOpen] = useState(false);
 
   const wrapperRef = useRef(null);
+  const loadRequestIdRef = useRef(0);
 
   useEffect(() => {
+    let isActive = true;
+
     async function loadScope() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const requestId = ++loadRequestIdRef.current;
 
-      if (!user) {
-        setLoading(false);
-        return;
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!isActive || requestId !== loadRequestIdRef.current) return;
+
+        if (!user) {
+          setLoading(false);
+          return;
+        }
+
+        const { data: memberships, error: membershipsError } = await supabase
+          .from("group_members")
+          .select("group_id, groups(id, name)")
+          .eq("user_id", user.id);
+
+        if (!isActive || requestId !== loadRequestIdRef.current) return;
+
+        if (membershipsError) {
+          setGroups([]);
+          setSelectedValue("personal");
+          return;
+        }
+
+        const groupList =
+          memberships?.map((item) => item.groups).filter(Boolean) || [];
+
+        setGroups(groupList);
+
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("current_group_id")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (!isActive || requestId !== loadRequestIdRef.current) return;
+
+        if (profileError) {
+          setSelectedValue("personal");
+          return;
+        }
+
+        if (profile?.current_group_id) {
+          setSelectedValue(profile.current_group_id);
+        } else {
+          setSelectedValue("personal");
+        }
+      } finally {
+        if (isActive && requestId === loadRequestIdRef.current) {
+          setLoading(false);
+        }
       }
+    }
 
-      setUser(user);
-
-      const { data: memberships } = await supabase
-        .from("group_members")
-        .select("group_id, groups(id, name)")
-        .eq("user_id", user.id);
-
-      const groupList =
-        memberships?.map((item) => item.groups).filter(Boolean) || [];
-
-      setGroups(groupList);
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("current_group_id")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (profile?.current_group_id) {
-        setSelectedValue(profile.current_group_id);
-      } else {
-        setSelectedValue("personal");
-      }
-
-      setLoading(false);
+    function handleGroupMembershipChanged() {
+      loadScope();
     }
 
     loadScope();
+
+    window.addEventListener(
+      GROUP_MEMBERSHIP_CHANGED_EVENT,
+      handleGroupMembershipChanged,
+    );
+
+    return () => {
+      isActive = false;
+      window.removeEventListener(
+        GROUP_MEMBERSHIP_CHANGED_EVENT,
+        handleGroupMembershipChanged,
+      );
+    };
   }, [supabase]);
 
   useEffect(() => {
@@ -135,13 +182,13 @@ export default function ScopeSwitcher() {
     })),
   ];
   const selectedWorkspaceOption = workspaceOptions.find(
-    (workspace) => workspace.id === selectedValue
+    (workspace) => workspace.id === selectedValue,
   );
   const visibleWorkspaceOptions = selectedWorkspaceOption
     ? [
         selectedWorkspaceOption,
         ...workspaceOptions.filter(
-          (workspace) => workspace.id !== selectedWorkspaceOption.id
+          (workspace) => workspace.id !== selectedWorkspaceOption.id,
         ),
       ].slice(0, 2)
     : workspaceOptions.slice(0, 2);
@@ -162,11 +209,7 @@ export default function ScopeSwitcher() {
       >
         <div className="account-trigger-left">
           {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt=""
-              className="account-trigger-avatar"
-            />
+            <img src={avatarUrl} alt="" className="account-trigger-avatar" />
           ) : (
             <span className="account-trigger-avatar account-trigger-avatar-fallback">
               <User size={17} />
@@ -176,16 +219,11 @@ export default function ScopeSwitcher() {
           <div className="scope-trigger-text">
             <span className="account-trigger-name">{displayName}</span>
 
-            <span className="scope-trigger-value">
-              {selectedLabel}
-            </span>
+            <span className="scope-trigger-value">{selectedLabel}</span>
           </div>
         </div>
 
-        <ChevronDown
-          size={18}
-          className="scope-chevron"
-        />
+        <ChevronDown size={18} className="scope-chevron" />
       </button>
 
       {/* DROPDOWN */}
@@ -228,18 +266,14 @@ export default function ScopeSwitcher() {
           </div>
 
           <div className="scope-menu-group">
-            <p className="scope-menu-title">
-              SWITCH WORKSPACE
-            </p>
+            <p className="scope-menu-title">SWITCH WORKSPACE</p>
 
             {visibleWorkspaceOptions.map((workspace) => (
               <button
                 key={workspace.id}
                 type="button"
                 className={`scope-option ${
-                  selectedValue === workspace.id
-                    ? "active"
-                    : ""
+                  selectedValue === workspace.id ? "active" : ""
                 }`}
                 onClick={() => handleSelect(workspace.id)}
               >
@@ -255,9 +289,7 @@ export default function ScopeSwitcher() {
                   <span>{workspace.name}</span>
                 </div>
 
-                {selectedValue === workspace.id && (
-                  <Check size={16} />
-                )}
+                {selectedValue === workspace.id && <Check size={16} />}
               </button>
             ))}
 
@@ -321,8 +353,8 @@ export default function ScopeSwitcher() {
                 onClick={() => {
                   setOpen(false);
                   router.push("/groups");
-              }}
-            >
+                }}
+              >
                 Manage workspaces →
               </button>
             </>

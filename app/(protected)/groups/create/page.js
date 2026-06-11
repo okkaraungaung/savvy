@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { generateInviteCode } from "@/lib/groupCode";
+import { notifyGroupMembershipChanged } from "@/lib/groupMembershipEvents";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -97,6 +98,8 @@ export default function CreateGroupPage() {
         setLoading(false);
         return;
       }
+
+      notifyGroupMembershipChanged();
 
       setSuccess("Group created successfully.");
       setInviteCode(code);

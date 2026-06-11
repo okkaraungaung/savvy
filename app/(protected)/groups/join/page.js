@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { notifyGroupMembershipChanged } from "@/lib/groupMembershipEvents";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -83,6 +84,8 @@ export default function JoinGroupPage() {
       setLoading(false);
       return;
     }
+
+    notifyGroupMembershipChanged();
 
     setSuccess(`Joined "${group.name}" successfully.`);
     setCode("");
