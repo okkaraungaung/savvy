@@ -909,6 +909,22 @@ textarea:focus,
   border: 1px solid #fca5a5;
 }
 
+.exchange-preview {
+  padding: 14px 16px;
+  border: 1px solid rgba(75, 185, 209, 0.18);
+  border-radius: 16px;
+  background: linear-gradient(
+    135deg,
+    rgba(75, 185, 209, 0.12),
+    rgba(255, 255, 255, 0.9)
+  );
+}
+
+.exchange-preview .muted {
+  margin: 0;
+  line-height: 1.5;
+}
+
 /* =========================
    BUTTONS
 ========================= */
