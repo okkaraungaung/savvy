@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function JoinGroupPage() {
   const supabase = createClient();
+  const router = useRouter();
 
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
@@ -89,10 +92,21 @@ export default function JoinGroupPage() {
   return (
     <main className="page-wrap">
       <div className="container">
-        <div className="header">
-          <div>
-            <h1>Join Group</h1>
-            <p>Enter a 6-character code to join a savings group.</p>
+        <div className="header header-with-back">
+          <div className="header-left">
+            <button
+              type="button"
+              className="back-btn-inline"
+              onClick={() => router.push("/")}
+              aria-label="Back to dashboard"
+            >
+              <ArrowLeft size={18} />
+            </button>
+
+            <div>
+              <h1>Join Group</h1>
+              <p>Enter a 6-character code to join a savings group.</p>
+            </div>
           </div>
         </div>
 

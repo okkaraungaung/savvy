@@ -3,11 +3,14 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { generateInviteCode } from "@/lib/groupCode";
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const groupTypes = ["couple", "family", "friends"];
 
 export default function CreateGroupPage() {
   const supabase = createClient();
+  const router = useRouter();
 
   const [name, setName] = useState("");
   const [type, setType] = useState("family");
@@ -109,10 +112,21 @@ export default function CreateGroupPage() {
   return (
     <main className="page-wrap">
       <div className="container">
-        <div className="header">
-          <div>
-            <h1>Create Group</h1>
-            <p>Create a savings group and share the code with others.</p>
+        <div className="header header-with-back">
+          <div className="header-left">
+            <button
+              type="button"
+              className="back-btn-inline"
+              onClick={() => router.push("/")}
+              aria-label="Back to dashboard"
+            >
+              <ArrowLeft size={18} />
+            </button>
+
+            <div>
+              <h1>Create Group</h1>
+              <p>Create a savings group and share the code with others.</p>
+            </div>
           </div>
         </div>
 

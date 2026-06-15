@@ -5,8 +5,11 @@ import AddGoalForm from "@/components/AddGoalForm";
 import GoalCard from "@/components/GoalCard";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentScope } from "@/lib/getCurrentScope";
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function GoalsPage() {
+  const router = useRouter();
   const [goals, setGoals] = useState([]);
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -361,10 +364,21 @@ export default function GoalsPage() {
   return (
     <main className="page-wrap">
       <div className="container">
-        <div className="header">
-          <div>
-            <h1>Goals</h1>
-            <p>Create and track your savings goals.</p>
+        <div className="header header-with-back">
+          <div className="header-left">
+            <button
+              type="button"
+              className="back-btn-inline"
+              onClick={() => router.push("/")}
+              aria-label="Back to dashboard"
+            >
+              <ArrowLeft size={18} />
+            </button>
+
+            <div>
+              <h1>Goals</h1>
+              <p>Create and track your savings goals.</p>
+            </div>
           </div>
         </div>
 

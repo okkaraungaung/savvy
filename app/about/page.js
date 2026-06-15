@@ -9,20 +9,25 @@ export default function AboutPage() {
     return (
         <main className="page-wrap">
             <div className="container">
-                <div className="header header-with-back">
+                <div className="header header-with-back about-page-header">
                     <div className="header-left">
-                        <button className="back-btn-inline" onClick={() => router.back()}>
+                        <button
+                            type="button"
+                            className="back-btn-inline"
+                            onClick={() => router.push("/")}
+                            aria-label="Back to home"
+                        >
                             <ArrowLeft size={18} />
                         </button>
 
                         <div>
                             <h1>About Savvy</h1>
-                            <p>A simple savings and asset tracking app.</p>
+                            <p>Your savings, assets, and shared goals in one calm place.</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="about-hero card modern-card">
+                <div className="about-hero modern-card">
                     <h2>Save smarter, together.</h2>
                     <p>
                         Savvy helps you track your assets, goals, transactions, and group
@@ -31,19 +36,19 @@ export default function AboutPage() {
                 </div>
 
                 <div className="about-grid">
-                    <div className="card about-card modern-card">
+                    <div className="about-card modern-card">
                         <PiggyBank size={28} />
                         <h3>Track Assets</h3>
                         <p className="muted">Manage your money, savings, and valuable assets easily.</p>
                     </div>
 
-                    <div className="card about-card modern-card">
+                    <div className="about-card modern-card">
                         <Target size={28} />
                         <h3>Set Goals</h3>
                         <p className="muted">Create saving goals and follow your progress clearly.</p>
                     </div>
 
-                    <div className="card about-card modern-card">
+                    <div className="about-card modern-card">
                         <Users size={28} />
                         <h3>Group Savings</h3>
                         <p className="muted">Create or join groups using invite codes.</p>
@@ -52,7 +57,7 @@ export default function AboutPage() {
                 <div className="about-sections">
 
                     {/* ABOUT SAVVY */}
-                    <div className="card about-section modern-card">
+                    <div className="about-section modern-card">
                         <h3>About Savvy</h3>
                         <p>
                             Savvy is a modern financial tracking application designed to help users
@@ -65,7 +70,7 @@ export default function AboutPage() {
                     </div>
 
                     {/* HOW TO USE */}
-                    <div className="card about-section modern-card">
+                    <div className="about-section modern-card">
                         <h3>How to Use Savvy</h3>
                         <p>
                             Getting started with Savvy is simple. First, create or log in to your
@@ -77,7 +82,7 @@ export default function AboutPage() {
                     </div>
 
                     {/* DEVELOPERS */}
-                    <div className="card about-section modern-card">
+                    <div className="about-section modern-card">
                         <h3>About the Developers</h3>
                         <p>
                             Savvy is developed as a student project with a focus on combining modern

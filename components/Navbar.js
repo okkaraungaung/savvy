@@ -2,27 +2,16 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { User, Settings, Bell, LogOut } from "lucide-react";
 import ScopeSwitcher from "./ScopeSwitcher";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const router = useRouter();
   const [user, setUser] = useState(null);
-  const [open, setOpen] = useState(false);
 
   function isActive(path) {
     return pathname === path ? "nav-link active" : "nav-link";
-  }
-
-  async function handleLogout() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    setOpen(false);
-    router.push("/auth/login");
-    router.refresh();
   }
 
   useEffect(() => {
@@ -47,17 +36,6 @@ export default function Navbar() {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
-
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (!e.target.closest(".profile-wrapper")) {
-        setOpen(false);
-      }
-    }
-
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
   return (
@@ -95,60 +73,6 @@ export default function Navbar() {
             <Link href="/auth/login" className="login-btn-nav">
               Login
             </Link>
-          )}
-
-          {user && (
-            <div className="profile-wrapper">
-              {user.user_metadata?.avatar_url ? (
-                <img
-                  src={user.user_metadata.avatar_url}
-                  alt="User avatar"
-                  className="profile-avatar"
-                  onClick={() => setOpen((prev) => !prev)}
-                />
-              ) : (
-                <button
-                  type="button"
-                  className="profile-avatar-fallback"
-                  onClick={() => setOpen((prev) => !prev)}
-                >
-                  <User size={18} />
-                </button>
-              )}
-
-              {open && (
-                <div className="profile-dropdown">
-                  <Link
-                    href="/profile"
-                    className="dropdown-item"
-                    onClick={() => setOpen(false)}
-                  >
-                    <User size={18} />
-                    <span>Profile</span>
-                  </Link>
-
-                  <Link
-                    href="/about"
-                    className="dropdown-item"
-                    onClick={() => setOpen(false)}
-                  >
-                    <Bell size={18} />
-                    <span>About Us</span>
-                  </Link>
-
-                  <div className="dropdown-divider" />
-
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="dropdown-item logout-dropdown-btn"
-                  >
-                    <LogOut size={18} />
-                    <span>Logout</span>
-                  </button>
-                </div>
-              )}
-            </div>
           )}
         </div>
       </div>

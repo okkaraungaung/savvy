@@ -6,8 +6,11 @@ import TransactionList from "@/components/TransactionList";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentScope } from "@/lib/getCurrentScope";
 import { attachUsersToTransactions } from "@/lib/attachUsersToTransactions";
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function TransactionsPage() {
+  const router = useRouter();
   const [assets, setAssets] = useState([]);
   const [goals, setGoals] = useState([]);
   const [transactions, setTransactions] = useState([]);
@@ -250,10 +253,21 @@ export default function TransactionsPage() {
   return (
     <main className="page-wrap">
       <div className="container">
-        <div className="header">
-          <div>
-            <h1>Transactions</h1>
-            <p>Add and view your transactions here.</p>
+        <div className="header header-with-back">
+          <div className="header-left">
+            <button
+              type="button"
+              className="back-btn-inline"
+              onClick={() => router.push("/")}
+              aria-label="Back to dashboard"
+            >
+              <ArrowLeft size={18} />
+            </button>
+
+            <div>
+              <h1>Transactions</h1>
+              <p>Add and view your transactions here.</p>
+            </div>
           </div>
         </div>
 

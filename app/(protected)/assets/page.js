@@ -5,8 +5,11 @@ import AddAssetForm from "@/components/AddAssetForm";
 import AssetCard from "@/components/AssetCard";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentScope } from "@/lib/getCurrentScope";
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function AssetsPage() {
+  const router = useRouter();
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -110,10 +113,21 @@ export default function AssetsPage() {
   return (
     <main className="page-wrap">
       <div className="container">
-        <div className="header">
-          <div>
-            <h1>All Assets</h1>
-            <p>View all your assets and add new ones here.</p>
+        <div className="header header-with-back">
+          <div className="header-left">
+            <button
+              type="button"
+              className="back-btn-inline"
+              onClick={() => router.push("/")}
+              aria-label="Back to dashboard"
+            >
+              <ArrowLeft size={18} />
+            </button>
+
+            <div>
+              <h1>All Assets</h1>
+              <p>View all your assets and add new ones here.</p>
+            </div>
           </div>
         </div>
 

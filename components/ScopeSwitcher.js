@@ -1,15 +1,27 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { ChevronDown, Check, Layers, User } from "lucide-react";
+import {
+  ChevronDown,
+  Check,
+  Info,
+  Layers,
+  LogOut,
+  Plus,
+  Settings,
+  User,
+  Users,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function ScopeSwitcher() {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
 
   const [groups, setGroups] = useState([]);
+  const [user, setUser] = useState(null);
   const [selectedValue, setSelectedValue] = useState("personal");
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -26,6 +38,8 @@ export default function ScopeSwitcher() {
         setLoading(false);
         return;
       }
+
+      setUser(user);
 
       const { data: memberships } = await supabase
         .from("group_members")
@@ -90,12 +104,48 @@ export default function ScopeSwitcher() {
     window.location.reload();
   }
 
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    setOpen(false);
+    router.push("/auth/login");
+    router.refresh();
+  }
+
   const selectedGroup = groups.find((group) => group.id === selectedValue);
 
   const selectedLabel =
     selectedValue === "personal"
       ? "Personal"
       : selectedGroup?.name || "Select scope";
+
+  const displayName =
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
+    user?.email?.split("@")[0] ||
+    "My profile";
+
+  const avatarUrl = user?.user_metadata?.avatar_url;
+  const userEmail = user?.email || "";
+  const workspaceOptions = [
+    { id: "personal", name: "Personal", type: "personal" },
+    ...groups.map((group) => ({
+      id: group.id,
+      name: group.name,
+      type: "group",
+    })),
+  ];
+  const selectedWorkspaceOption = workspaceOptions.find(
+    (workspace) => workspace.id === selectedValue
+  );
+  const visibleWorkspaceOptions = selectedWorkspaceOption
+    ? [
+        selectedWorkspaceOption,
+        ...workspaceOptions.filter(
+          (workspace) => workspace.id !== selectedWorkspaceOption.id
+        ),
+      ].slice(0, 2)
+    : workspaceOptions.slice(0, 2);
+  const hiddenWorkspaceCount = Math.max(workspaceOptions.length - 2, 0);
 
   if (loading) return null;
 
@@ -107,100 +157,135 @@ export default function ScopeSwitcher() {
       {/* TRIGGER */}
       <button
         type="button"
-        className="scope-trigger"
+        className="scope-trigger account-trigger modern-trigger"
         onClick={() => setOpen((prev) => !prev)}
       >
-        <div className="scope-trigger-left">
-          <div className="scope-trigger-icon">
-            {selectedValue === "personal" ? (
-              <User size={16} />
-            ) : (
-              <Layers size={16} />
-            )}
-          </div>
+        <div className="account-trigger-left">
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt=""
+              className="account-trigger-avatar"
+            />
+          ) : (
+            <span className="account-trigger-avatar account-trigger-avatar-fallback">
+              <User size={17} />
+            </span>
+          )}
 
           <div className="scope-trigger-text">
-            <span className="scope-trigger-label">Current scope</span>
-            <span className="scope-trigger-value">{selectedLabel}</span>
+            <span className="account-trigger-name">{displayName}</span>
+
+            <span className="scope-trigger-value">
+              {selectedLabel}
+            </span>
           </div>
         </div>
 
-        <ChevronDown size={18} className="scope-chevron" />
+        <ChevronDown
+          size={18}
+          className="scope-chevron"
+        />
       </button>
 
       {/* DROPDOWN */}
       {open && (
-        <div className="scope-menu">
-          {/* PERSONAL */}
-          <div className="scope-menu-group">
-            <p className="scope-menu-title">Personal</p>
+        <div className="scope-menu account-menu">
+          <div className="account-menu-profile">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="" className="account-menu-avatar" />
+            ) : (
+              <span className="account-menu-avatar account-menu-avatar-fallback">
+                <User size={20} />
+              </span>
+            )}
 
-            <button
-              type="button"
-              className={`scope-option ${
-                selectedValue === "personal" ? "active" : ""
-              }`}
-              onClick={() => handleSelect("personal")}
-            >
-              <div className="scope-option-left">
-                <div className="scope-option-icon">
-                  <User size={16} />
-                </div>
-                <span>Personal</span>
-              </div>
-
-              {selectedValue === "personal" && <Check size={16} />}
-            </button>
+            <div className="account-menu-profile-text">
+              <p>{displayName}</p>
+              <strong>{selectedLabel} workspace</strong>
+              {userEmail && <span>{userEmail}</span>}
+            </div>
           </div>
 
-          {/* GROUPS */}
-          {groups.length > 0 && (
-            <>
-              <div className="scope-divider" />
+          <div className="account-menu-links">
+            <Link
+              href="/profile"
+              className="dropdown-item account-menu-link"
+              onClick={() => setOpen(false)}
+            >
+              <User size={18} />
+              <span>My profile</span>
+            </Link>
 
-              <div className="scope-menu-group">
-                <div className="scope-menu-header">
-                  <p className="scope-menu-title">Groups</p>
-                  <button
-                    type="button"
-                    className="scope-menu-toggle"
-                    onClick={() => {
-                      setOpen(false);
-                      router.push("/groups");
-                    }}
-                  >
-                    Show Groups
-                  </button>
+            <Link
+              href="/settings"
+              className="dropdown-item account-menu-link"
+              onClick={() => setOpen(false)}
+            >
+              <Settings size={18} />
+              <span>Account settings</span>
+            </Link>
+          </div>
+
+          <div className="scope-menu-group">
+            <p className="scope-menu-title">
+              SWITCH WORKSPACE
+            </p>
+
+            {visibleWorkspaceOptions.map((workspace) => (
+              <button
+                key={workspace.id}
+                type="button"
+                className={`scope-option ${
+                  selectedValue === workspace.id
+                    ? "active"
+                    : ""
+                }`}
+                onClick={() => handleSelect(workspace.id)}
+              >
+                <div className="scope-option-left">
+                  <div className="scope-option-icon account-option-avatar">
+                    {workspace.type === "personal" ? (
+                      <User size={16} />
+                    ) : (
+                      <Layers size={16} />
+                    )}
+                  </div>
+
+                  <span>{workspace.name}</span>
                 </div>
 
-                {groups.map((group) => (
-                  <button
-                    key={group.id}
-                    type="button"
-                    className={`scope-option ${
-                      selectedValue === group.id ? "active" : ""
-                    }`}
-                    onClick={() => handleSelect(group.id)}
-                  >
-                    <div className="scope-option-left">
-                      <div className="scope-option-icon">
-                        <Layers size={16} />
-                      </div>
-                      <span>{group.name}</span>
-                    </div>
+                {selectedValue === workspace.id && (
+                  <Check size={16} />
+                )}
+              </button>
+            ))}
 
-                    {selectedValue === group.id && <Check size={16} />}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
+            {hiddenWorkspaceCount > 0 && (
+              <button
+                type="button"
+                className="scope-option scope-more-option"
+                onClick={() => {
+                  setOpen(false);
+                  router.push("/groups");
+                }}
+              >
+                <div className="scope-option-left">
+                  <div className="scope-option-icon account-option-avatar">
+                    <Layers size={16} />
+                  </div>
 
-          {/* CREATE GROUP BUTTON */}
-          {/* ACTION BUTTONS */}
+                  <span>{hiddenWorkspaceCount} more workspaces</span>
+                </div>
+
+                <span className="scope-more-arrow">View</span>
+              </button>
+            )}
+          </div>
+
           <div className="scope-divider" />
 
-          <div className="scope-actions">
+          <div className="scope-actions modern-actions">
             <button
               type="button"
               className="scope-create-btn"
@@ -209,7 +294,8 @@ export default function ScopeSwitcher() {
                 router.push("/groups/create");
               }}
             >
-              + Create Group
+              <Plus size={16} />
+              Create Group
             </button>
 
             <button
@@ -220,9 +306,47 @@ export default function ScopeSwitcher() {
                 router.push("/groups/join");
               }}
             >
+              <Users size={16} />
               Join Group
             </button>
           </div>
+
+          {workspaceOptions.length > 2 && (
+            <>
+              <div className="scope-divider" />
+
+              <button
+                type="button"
+                className="scope-groups-link"
+                onClick={() => {
+                  setOpen(false);
+                  router.push("/groups");
+              }}
+            >
+                Manage workspaces →
+              </button>
+            </>
+          )}
+
+          <div className="scope-divider" />
+
+          <Link
+            href="/about"
+            className="dropdown-item account-menu-link account-about-link"
+            onClick={() => setOpen(false)}
+          >
+            <Info size={18} />
+            <span>About Savvy</span>
+          </Link>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="dropdown-item logout-dropdown-btn account-signout-btn"
+          >
+            <LogOut size={18} />
+            <span>Sign out</span>
+          </button>
         </div>
       )}
     </div>

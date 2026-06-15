@@ -97,7 +97,12 @@ export default function ProfilePage() {
       <div className="container">
         <div className="header header-with-back">
           <div className="header-left">
-            <button className="back-btn-inline" onClick={() => router.back()}>
+            <button
+              type="button"
+              className="back-btn-inline"
+              onClick={() => router.push("/")}
+              aria-label="Back to dashboard"
+            >
               <ArrowLeft size={18} />
             </button>
 
