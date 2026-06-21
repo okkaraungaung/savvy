@@ -14,6 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { notifyGroupMembershipChanged } from "@/lib/groupMembershipEvents";
 
 export default function GroupsPage() {
   const supabase = useMemo(() => createClient(), []);
@@ -92,6 +93,7 @@ export default function GroupsPage() {
       },
     ]);
 
+    notifyGroupMembershipChanged();
     setCurrentGroupId(groupId);
     router.refresh();
   }
